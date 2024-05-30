@@ -1,0 +1,102 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load bootstrap_icons %}
+{% load filters %}
+{% load tags %}
+{% load humanize %}
+
+
+{% block content %}
+    <form method="post" class="form" style="max-width: 40em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h3 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Обработка заказа.</h3>
+        <div class="h4 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Заказ №{{ order.id }}<br>{{ order.object.name }}/{{ order.house.name }}<br><small>Текущий статус: <span class="badge rounded-pill bg-success">{{ order.get_status_display }}</span></small></div>
+
+        {% if error %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ error }}</div>
+        {% endif %}
+        Выбран шаблон: {{ orderdetail.order.sample.title }}<br>
+        <small>(Можно кликать по строкам заказа, чтобы изменить данные)</small>
+
+        <div class="list-group" style="overflow-y: auto;">
+            {% for detail in details|in_sample %}
+                    {% if order.status == '2' %}
+                        <a href="{% url 'project:editorderdetail' detail.id %}?page={{ page }}&f={{ status }}" style="cursor: pointer" class="list-group-item list-group-item-action">
+                    {% else %}
+                        <a href="#" style="cursor: pointer" class="list-group-item list-group-item-action">
+                    {% endif %}
+                       <div class="w-100">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1"><span class="badge rounded-pill bg-warning">{{ forloop.counter}}</span> {{ detail.title }}</h6>
+                            <small>
+                                {% if detail.quantity == detail.sample_quantity %}
+                                    <span class="badge rounded-pill bg-info">{{ detail.quantity }}</span> {{ detail.get_measure_display }}
+                                {% else %}
+                                    <span class="badge rounded-pill bg-primary">{{ detail.quantity }}</span> {{ detail.get_measure_display }}
+                                {% endif %}
+                            </small>
+                        </div>
+                                <div class="d-flex w-100 justify-content-between">
+                                    {% if detail.code and detail.code.strip %}
+                                        Код: {{ detail.code }}
+                                    {% else %}
+                                        &nbsp;
+                                    {% endif %}
+                                    <small>
+                                        <b>{{ detail.price|floatformat:2 }}</b>
+                                    </small>
+                                </div>
+                       </div>
+              </a>
+            {% endfor %}
+            <div class="d-flex w-100 justify-content-end mt-3">
+                    {% is_supplier request as is_supplier_ %}
+                    {% if is_supplier_ and order.status == '2' %}
+                        <a class="btn btn-sm btn btn-secondary" href="{% url 'project:orderdetailadd' order.id %}?page={{ page }}&f={{ status }}">Добавить позицию в заказ</a>&nbsp;&nbsp;&nbsp;
+                    {% endif %}
+                    <b class="mt-2">Итого: {{ sum.summary|floatformat:2|intcomma }}</b>&nbsp;&nbsp;&nbsp;&nbsp;
+            </div>
+        </div>
+
+        {{ form.comment.label_tag }}<br>
+        {{ form.comment }}
+
+        {{ form.supplier.label_tag }}<br>
+        {{ form.supplier }}
+
+        {{ form.media }}
+
+        {% is_supplier request as is_supplier_ %}
+        {% if is_supplier_ and order.status == '2' %}
+
+        <div class="d-flex justify-content-center">
+            <div class="btn-group mt-3" data-toggle="buttons">
+                {% for choice in form.like %}
+                    {% if forloop.counter == 2 %}
+                        <label class="btn btn-secondary form-check-label active">
+                            {{ choice }}
+                        </label>
+                    {% else %}
+                        <label class="btn btn-secondary form-check-label">
+                            {{ choice }}
+                        </label>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+   {# </div> #}
+        <div class="d-flex justify-content-center">
+            {% buttons %}
+                <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Сохранить</button>
+            {% endbuttons %}
+        {% endif %}
+        </div>
+    </form>
+     <div class="d-flex justify-content-center" style="max-width: 330px; margin: auto; padding-left: 15px; padding-right: 15px;">
+            <a class="btn btn-sm btn btn-secondary" href="{% url 'project:orders' %}?page={{ page }}&f={{ status }}">{% bs_icon 'reply' size='1.5em' color='white' extra_classes='mb-1' %} Вернуться</a>&nbsp;
+    </div>
+{% endblock %}

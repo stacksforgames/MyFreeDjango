@@ -1,0 +1,83 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load bootstrap_icons %}
+{% load filters %}
+
+
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h3 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Отправка на согласование.</h3>
+        <div class="h4 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Заказ №{{ order.id }}<br>{{ order.object.name }}/{{ order.house.name }}<br><small>Текущий статус: <span class="badge rounded-pill bg-success">{{ order.get_status_display }}</span></small></div>
+
+        {% if error %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ error }}</div>
+        {% endif %}
+        Выбран шаблон: {{ order.sample.title }}<br>
+        <small>(Можно кликать по строкам заказа, чтобы изменить количество)</small>
+
+        <div class="list-group" style="overflow-y: auto;">
+            {% for detail in details %}
+            {#<button id="open-house-estimate-details" class="view-details btn btn-warning py-0" data-toggle="modal" data-target="#myModal" data-form-url="{% url 'project:orderdetaileditmodal' detail.id %}">Добавить дом</button>#}
+                    <a style="cursor: pointer" class="view-details list-group-item list-group-item-action" data-form-url="{% url 'project:orderdetaileditmodal' detail.id %}?page={{ page }}&f={{ status }}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1"><span class="badge rounded-pill bg-warning">{{ forloop.counter}}</span> {{ detail.title }}</h6>
+                            <small>
+                                {% if detail.quantity == detail.sample_quantity %}
+                                    <span class="badge rounded-pill bg-info">{{ detail.quantity }}</span> {{ detail.get_measure_display }}
+                                {% else %}
+                                    <span class="badge rounded-pill bg-primary">{{ detail.quantity }}</span> {{ detail.get_measure_display }}
+                                {% endif %}
+                            </small>
+                        </div>
+                        <p class="mb-1">
+                            {% if detail.code and detail.code.strip %}
+                                    Код: {{ detail.code }}
+                            {% endif %}
+                        </p>
+
+                    </a>
+            {% endfor %}
+        </div>
+
+
+
+        {{ form.comment.label_tag }}<br>
+        {{ form.comment }}
+
+        {{ form.media }}
+
+        {% buttons %}
+        {% if order.status == '0' %}
+            <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Отправить на согласование</button>
+        {% endif %}
+        {% endbuttons %}
+    </form>
+     <div class="d-flex justify-content-center" style="max-width: 330px; margin: auto; padding-left: 15px; padding-right: 15px;">
+            <a class="btn btn-sm btn btn-secondary" href="{% url 'project:editorder' order.id %}?page={{ page }}&f={{ status }}">{% bs_icon 'reply' size='1.5em' color='white' extra_classes='mb-1' %} Вернуться</a>&nbsp;
+    </div>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="modal">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content"></div>
+  </div>
+</div>
+
+<script type="text/javascript">
+$(function() {
+
+    function viewDetailDataForm() {
+        $(".view-details").each(function () {
+            $(this).modalForm({
+                formURL: $(this).data("form-url")
+            });
+        });
+    }
+    viewDetailDataForm();
+});
+</script>
+
+{% endblock %}

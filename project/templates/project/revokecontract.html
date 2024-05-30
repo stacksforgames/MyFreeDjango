@@ -1,0 +1,46 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% block mycss %} <style> .readonlyfield {border: 1px solid #ced4da; border-radius: .25rem; padding: .5rem .5rem .5rem .5rem; background-color: #FAFAFA} </style> {% endblock %}
+
+{% load filters %}
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Аннулирование контракта</h1>
+
+        {% if error %}
+            {% for item in error %}
+                <div class="alert alert-danger fade show mt-0" role="alert">{{ item }}</div>
+            {% endfor %}
+        {% endif %}
+
+        Номер договора:<br>
+            <div class="readonlyfield">
+                {{ contract.number }}
+            </div>
+
+        {{ form.title.comment }}<br>
+        {{ form.comment }}
+
+        {{ form.media }}
+
+        {% buttons %}
+            <button name="submit" class="confirm-contract-revoke w-100 btn btn-lg btn-primary" style="margin-top: 10px">Аннулировать контракт</button>
+        {% endbuttons %}
+    </form>
+    <div  style="max-width: 25em; margin: auto">
+       <nav class="navbar navbar-light px-3">
+            <a class="btn btn-sm btn btn-secondary" href="{% url 'project:onecontract' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">&#x21b6; Вернуться</a>
+       </nav>
+    </div>
+
+    <script type="text/javascript">
+        $(document).on('click', '.confirm-contract-revoke', function(){
+                return confirm('Вы действительно хотите аннулировать этот контракт?');
+            })
+    </script>
+
+{% endblock %}

@@ -1,0 +1,272 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load filters %}
+{% load tags %}
+{% load humanize %}
+{% block mycss %} <style> .readonlyfield {border: 1px solid #ced4da; border-radius: .25rem; padding: .375rem 2.25rem .375rem .75rem; background-color: #FAFAFA} </style> {% endblock %}
+
+
+{% block content %}
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <div>
+                    <h1>Мои контракты</h1>
+                </div>
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="btn btn-secondary active" href="{% url 'project:contractadd' %}?page={{ page }}{% if rollback %}{{ rollback }}{% endif %}">
+                                <span class="fs-7 fw-semibold float-right">&#10010; Добавить</span>
+                            </a>
+                        </li>
+                    </ul>
+            </div>
+        </nav>
+    {% if mycontracts %}
+        <div class="list-group list-group-flush border-bottom scrollarea" style="overflow-y: auto;">
+
+        {% is_manager request as is_manager_ %}
+
+        {% for item in mycontracts %}
+            {% get_contract_color_type item.unperformed item.status as back_color %}
+            {% get_amount_color_type item.income_equal as income_back_color %}
+            {% get_amount_color_type item.paid_equal as paid_back_color %}
+            {% get_reservation_color item.reservation_type item.reservation_date as reservation_color %}
+            <a href="{% url 'project:onecontract' item.id %}?page={{ page }}{% if rollback %}{{ rollback }}{% endif %}" class="list-group-item list-group-item-action {{ back_color }} py-2 lh-tight" {% if item.revoked %} style="border-color: #efaaaa; border-width: 1px; background-color: #ffbbbb;"{% endif %}>
+
+            <div class="d-flex w-100 align-items-center justify-content-between" {% if item.revoked %}style="background: repeating-linear-gradient(-45deg, transparent 0 15px, #efaaaa 20px 40px);"{% endif %}>
+                <strong class="mb-1">
+                    {% if item.alarm %}&#9200;{% endif %}<span class="badge rounded-pill bg-warning">{{ item.date|date:"d/m/Y" }}</span>
+                        <span class="badge rounded-pill bg-primary">{{ item.get_type_display }}-{{ item.number }}</span>&nbsp;{{ item.object.name }}/{{ item.house.name }}/кв&nbsp;{{ item.apartment }} ({{ item.client }}) {{ item.title }}
+                    <br>
+                    Сумма контракта: <span class="badge bg-secondary">{{ item.price|subtraction:item.agency_discount|subtraction:item.developer_discount|amount_space_separator }} р. </span> Поступлений: <span class="badge {{ income_back_color }}">{{ item.income|amount_space_separator }} р.</span>
+                    Сумма комиссий: <span class="badge bg-secondary">{{ item.agency_commission|addition:item.seller_commission|amount_space_separator }} р. </span> Выплачено: <span class="badge {{ paid_back_color }}">{{ item.paid|amount_space_separator }} р.</span></strong>
+                <small><span class="badge rounded-pill bg-success">{{ item.owner.first_name }} {{ item.owner.last_name }}</span><br>
+                    {% if item.revoked %}
+                        <span class="badge rounded-pill bg-danger">Аннулирован</span>
+                    {% else %}
+                        <span class="badge rounded-pill {% if item.withimages == 0 %}bg-secondary{% else %}bg-warning{% endif %}">{% if item.receipt or item.onhand %}{% if item.receipt %}&#10004;{% else %}&nbsp;&nbsp;&nbsp;{% endif %}{% if item.onhand %}&#10004;{% else %}&nbsp;&nbsp;&nbsp;{% endif %}{% endif %}{{ item.get_status_display }}</span>{% if item.reservation_type != 'a' %}<span class="badge rounded-pill {{ reservation_color }}">Б</span>{% endif %}
+                    {% endif %}
+                </small>
+            </div>
+        </a>
+        {% endfor %}
+            <div class="readonlyfield">
+                Всего по выборке:<br>
+                Общая площадь:&nbsp;<b>{{ totalsquare }}</b>&nbsp;м2<br>
+                Планируемая сумма поступлений:&nbsp;<b>{{ totalplannedamount|amount_space_separator }}</b>&nbsp;р.<br>
+                Всего поступило:&nbsp;<b>{{ totalreceivedamount|amount_space_separator }}</b>&nbsp;р.<br>
+                Планируемая сумма комиссий:&nbsp;<b>{{ totalplannedcommission|amount_space_separator }}</b>&nbsp;р.<br>
+                Всего выплачено:&nbsp;<b>{{ totalreceivedcommission|amount_space_separator }}</b>&nbsp;р.<br>
+                Дебиторская задолженность:&nbsp;<b>{{ totalebt|amount_space_separator }}</b>&nbsp;р.
+            </div>
+
+            <nav aria-label="...">
+                <ul class="pagination justify-content-center mt-3">
+                    {% if page_.has_previous %}
+                    <li class="page-item">
+                    {% else %}
+                    <li class="page-item disabled">
+                    {% endif %}
+                        <a class="page-link" href="/contracts/?page={{ page|add:-1 }}{{ rollback }}"><<</a>
+                    </li>
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{page_.number}} из {{pages.num_pages}}</span>
+                    </li>
+                    <li class="page-item" aria-current="page">
+                        <a class="page-link" href="#" id="go_page">&#10150;{{page_.number}}</a>
+                    </li>
+                    {% if page_.has_next %}
+                    <li class="page-item">
+                    {% else %}
+                    <li class="page-item disabled">
+                    {% endif %}
+                        <a class="page-link" href="/contracts/?page={{ page|add:1 }}{{ rollback }}">>></a>
+                    </li>
+                </ul>
+            </nav>
+            <input type="range" min="1" step="1" max="{{pages.num_pages}}" value="{{ page }}"  id="myRange">
+        </div>
+
+    {% else %}
+        <h3 class="mb-3 mt-3">Вы пока ещё не создавали контрактов</h3>
+    {% endif %}
+            <form method="post" class="form" style="padding: 5px; display: inline;">
+                {% csrf_token %}
+                <table>
+                    <tr>
+                        <td>
+                             {{ form.datefrom.label_tag }}
+                        </td>
+                        <td>
+                             {{ form.datefrom }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                             {{ form.dateto.label_tag }}
+                        </td>
+                        <td>
+                             {{ form.dateto }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                             {{ form.author.label_tag }}
+                        </td>
+                        <td>
+                             {{ form.author }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                             {{ form.choice_filter.label_tag }}
+                        </td>
+                        <td>
+                             {{ form.choice_filter }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                             {{ form.contract_type.label_tag }}
+                        </td>
+                        <td>
+                             {{ form.contract_type }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                             Чек/Оригинал:
+                        </td>
+                        <td>
+                            <table>
+                                <tr>
+                                    <td>
+                             {{ form.receipt }}
+                                    </td>
+                                    <td>
+                             {{ form.onhand }}
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                             {{ form.number.label_tag }}
+                        </td>
+                        <td>
+                             {{ form.number }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                             {{ form.client.label_tag }}
+                        </td>
+                        <td>
+                             {{ form.client }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            {{ form.object.label_tag }}
+                        </td>
+                        <td>
+                            {{ form.object }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            {{ form.house.label_tag }}
+                        </td>
+                        <td>
+                            {{ form.house }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                        </td>
+                        <td>
+                        {% buttons %}
+                            <button name="submit"  class="w-100 btn btn-primary" style="margin-top: 15px; padding: 5px; color: transparent; text-shadow: 0 0 0 white;">&nbsp;&#128269;&nbsp;</button>
+                        {% endbuttons %}
+                        </td>
+                    </tr>
+                </table>
+        {{ form.media }}
+            </form>
+    <script>
+    var getUrlParameter = function getUrlParameter(sParam) {
+        var sPageURL = window.location.search.substring(1),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+            }
+        }
+        return false;
+        };
+        var s = "";
+        var slider = document.getElementById("myRange");
+        var output = document.getElementById("go_page");
+        var filter = getUrlParameter("f");
+        if (filter) {
+            s = s + "&f=" + filter
+        }
+
+        var house = getUrlParameter("h");
+        if (house) {
+            s = s + "&h=" + house
+        }
+        var author = getUrlParameter("a");
+        if (author) {
+            s = s + "&a=" + author
+        }
+        var status_c = getUrlParameter("c");
+        if (status_c) {
+            s = s + "&c=" + status_c
+        }
+        var type = getUrlParameter("t");
+        if (type) {
+            s = s + "&t=" + type
+        }
+        var receipt = getUrlParameter("r");
+        if (receipt) {
+            s = s + "&r=" + receipt
+        }
+        var onhand = getUrlParameter("on");
+        if (onhand) {
+            s = s + "&on=" + onhand
+        }
+        var number = getUrlParameter("n");
+        if (number) {
+            s = s + "&n=" + number
+        }
+        var client = getUrlParameter("b");
+        if (client) {
+            s = s + "&b=" + client
+        }
+
+        var date_from = getUrlParameter("from");
+        if (date_from) {
+            s = s + "&from=" + date_from
+        }
+        var date_to = getUrlParameter("to");
+        if (date_to) {
+            s = s + "&to=" + date_to
+        }
+        output.innerHTML = "&#10150;" + slider.value;
+
+        slider.oninput = function() {
+            output.innerHTML = "&#10150;" + this.value;
+            $(output).attr("href", "/contracts/?page=" + this.value + s)
+        }
+</script>
+{% endblock %}

@@ -1,0 +1,258 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% load tags %}
+{% load filters %}
+{% load humanize %}
+
+{% block content %}
+{% spaceless %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+                 <div>
+                    <h1>Бетон</h1>
+                </div>
+       <div class="btn-toolbar" role="toolbar" aria-label="...">
+           {% is_manager request as is_manager_ %}
+           {% if is_manager_ %}
+            <div class="btn-group mr-2" role="group" aria-label="First group">
+                <a href="{% url 'project:newprepayment'%}?page={{ page }}&from={{ datefrom }}&to={{ dateto }}&s={{ filter_supplier }}&o={{ filtered_object }}&h={{ filtered_house }}">
+                <button type="button" class="btn btn-secondary">{#{% bs_icon 'cash-coin' size='1.2em' color='white' extra_classes='mb-1' %}#}
+                                <span class="fs-7 fw-semibold float-right">&nbsp;&#8381;&nbsp;Аванс</span></button>
+                    </a>&nbsp;
+            </div>
+           {% endif %}
+           {% is_concreter request as is_concreter_ %}
+           {% if is_concreter_ %}
+            <div class="btn-group mr-5" role="group" aria-label="Second group">
+                <a href="{% url 'project:newdconcretedelivery'%}?page={{ page }}&from={{ datefrom }}&to={{ dateto }}&s={{ filter_supplier }}&o={{ filtered_object }}&h={{ filtered_house }}">
+                <button type="button" class="btn btn-secondary">{#{% bs_icon 'truck' size='1.2em' color='white' extra_classes='mb-1' %}#}
+                                <span class="fs-7 fw-semibold float-right">&#10155;&nbsp;Отгрузка</span></button>
+                    </a>
+            </div>
+           {% endif %}
+        </div>
+    </div>
+ </nav>
+    {% if records %}
+        <div class="accordion" id="accordionPanelsStayOpen" style="margin: auto">
+        <div>
+             <table class="table table-striped table-sm table-bordered" width="100%">
+                 <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Поставщик</th>
+                        <th scope="col">Авансы</th>
+                        <th scope="col">Отгрузки</th>
+                        <th scope="col">Остаток</th>
+                    </tr>
+                 </thead>
+                 <tbody>
+                 {% for item in suppliers %}
+                 <tr>
+                     <td>
+                         {{ item.supplier__name }}
+                     </td>
+                     <td>
+                        {{ item.summary|floatformat:2|intcomma }}
+                     </td>
+
+                         {% for del in delivery %}
+                            {% if del.supplier__id == item.supplier__id %}
+                                {% with summary=item.summary|subtraction:del.total_sum %}
+                                    <td>
+                                        {{ del.total_sum|floatformat:2|intcomma }}
+                                    </td>
+                                    <td>
+                                        {{ summary|floatformat:2|intcomma }}
+                                    </td>
+                         {% endwith %}
+                            {% endif %}
+                         {% endfor %}
+
+                     </td>
+
+
+                 </tr>
+                 {% endfor %}
+                 </tbody>
+             </table>
+        </div>
+            {% for item in records %}
+              {% if item.type == 0 %}
+                <div class="accordion-item" style="background-color: #F1F1F1">
+                    <h3 class="accordion-header" id="panelsStayOpen-heading-{{ item.id }}">
+                        <button class="accordion-button collapsed"  style="background-color: #F9F1E6; padding: 4px" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse-{{ item.id }}" aria-expanded="false" aria-controls="panelsStayOpen-collapse-{{ item.id }}">
+                            <table width="100%">
+                                <tr>
+                                {% with summary=item.price|multiply:item.volume|addition:item.pumpsummary %}
+                                {% with delivery=item.deliveryprice|multiply:item.deliveryvolume %}
+                                {% with downcost=item.downtime|multiply:item.downtimecost %}
+                                    {% if item.verified %}
+                                        <td style="width: 5px; background-color: green"></td>
+                                    {% else %}
+                                        <td style="width: 5px"></td>
+                                    {% endif %}
+                                    <td style="width:50%"><b>{{ item.date|date:"d/m/Y" }}</b> <span class="badge rounded-pill bg-warning">{{ item.supplier__name }}</span>{#{% bs_icon 'arrow-right-short' size='1.3em' color='black' extra_classes='pl-3 mb-0' %}#}&rArr;<span class="badge rounded-pill bg-info">{{ item.object__name }}/{{ item.house__name }}</span></td><td><b>{{ item.volume }}</b> м3&nbsp;<span class="badge rounded-pill {% if item.downtime > 0 %}bg-danger{% else %}bg-secondary{% endif %}">{{ summary|addition:delivery|addition:downcost|addition:item.pumptransfer|floatformat:2 }} р.</span><b>&nbsp;{{ item.comment }}</b>&nbsp;{{ item.pile }}&nbsp;<i>({{ item.owner }})</i></td>
+                                {% endwith %}
+                                {% endwith %}
+                                {% endwith %}
+                                </tr>
+                            </table>
+                        </button>
+                    </h3>
+                    <div id="panelsStayOpen-collapse-{{ item.id }}" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-heading-{{ item.id }}">
+                        <div class="accordion-body">
+                            <div class="accordion" id="accordionPanelsStayOpen-{{ item.id }}" style="max-width: 25em; margin: auto">
+                                <span class="badge bg-success">Бетон: <b>{{ item.volume }}</b>м3 x {{ item.price }} = {{ item.price | multiply:item.volume|floatformat:2 }}</span><br>
+                                <span class="badge bg-success">Бетононасос: <b>{{ item.pumpsummary }}</b></span> <small>{{ item.pumpcomment }}</small><br>
+                                {% if item.pumptransfer > 0 %}<span class="badge bg-success">Переезд автобетононасоса: <b>{{ item.pumptransfer }}</b></span><br>{% endif %}
+                                {% if item.downtime > 0 %}<span class="badge bg-danger">Простой: <b>{{ item.downtime }}ч x {{ item.downtimecost }} = {{ item.downtime | multiply:item.downtimecost|floatformat:2 }}</b></span><br>{% endif %}
+                                <span class="badge bg-success">Доставка: <b>{{ item.deliveryvolume }}</b>м3 x {{ item.deliveryprice }} = {{ item.deliveryprice | multiply:item.deliveryvolume|floatformat:2 }}</span><br>
+                                <small>Марка: {{ item.concretegrade }} {% if item.pile %} Сваи: {{ item.pile }} {% endif %}</small><br>
+
+
+                               {% with summary=item.price|multiply:item.volume|addition:item.pumpsummary %}
+                               {% with delivery=item.deliveryprice|multiply:item.deliveryvolume %}
+                               {% with downcost=item.downtime|multiply:item.downtimecost %}
+                                    {% is_concreter request as is_concreter_ %}
+                                    {% if is_concreter_ %}
+                                        <a href="{% url 'project:concretedeliveryedit' item.id %}?page={{ page }}&from={{ datefrom }}&to={{ dateto }}&s={{ filter_supplier }}&o={{ filtered_object }}&h={{ filtered_house }}&a={{ prepay_only }}" class="btn btn-warning py-0">
+                                            <div class="text-black">Итого за отгрузку: <b>{{ summary|addition:delivery|addition:downcost|addition:item.pumptransfer|floatformat:2 }}</b> &nbsp; {#{% bs_icon 'pencil-square' size='1.2em' color='black' extra_classes='pl-0 mb-1' %}#}&#9745;</div>
+                                        </a>
+                                    {% else %}
+                                        <a href="#" class="btn btn-warning py-0">
+                                            <div class="text-black">Итого за отгрузку: <b>{{ summary|addition:delivery|addition:downcost|addition:item.pumptransfer|floatformat:2 }}</b> &nbsp; {#{% bs_icon 'pencil-square' size='1.2em' color='black' extra_classes='pl-0 mb-1' %}#}&#9745;</div>
+                                        </a>
+                                    {% endif %}
+                               {% endwith %}
+                               {% endwith %}
+                               {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+              {% else %}
+                <div class="accordion-item" style="background-color: #F19191">
+                    <h3 class="accordion-header" id="panelsStayOpen-pay-heading-{{ item.id }}">
+                        <button class="accordion-button collapsed"  style="background-color: #F19191; padding: 4px" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-pay-collapse-{{ item.id }}" aria-expanded="false" aria-controls="panelsStayOpen-pay-collapse-{{ item.id }}">
+                            <table width="100%">
+                                <tr>
+                                    <td style="width: 5px"><td><b>{{ item.date|date:"d/m/Y" }}</b> <span class="badge rounded-pill bg-warning">{{ item.supplier__name }}</span>{#{% bs_icon 'arrow-left-short' size='1.3em' color='black' extra_classes='pl-1 mb-1' %}#}&lArr;<b>{{ item.summary|floatformat:2 }}</b></td> <td width="50%"><strong>{{ item.comment }}</strong>&nbsp;<i>({{ item.owner }})</i></td>
+                                </tr>
+                            </table>
+                        </button>
+                    </h3>
+                    <div id="panelsStayOpen-pay-collapse-{{ item.id }}" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-pay-heading-{{ item.id }}">
+                        <div class="accordion-body">
+                            <div class="accordion" id="accordionPanelsStayOpenPay-{{ item.id }}" style="max-width: 25em; margin: auto">
+                                            {% is_manager request as is_manager_ %}
+                                            {% if is_manager_ %}
+                                                <a href="{% url 'project:prepaymentedit' item.id %}?page={{ page }}&from={{ datefrom }}&to={{ dateto }}&s={{ filter_supplier }}&o={{ filtered_object }}&h={{ filtered_house }}&a={{ prepay_only }}" class="btn btn-warning py-0">
+                                                    <div class="text-black">Редактировать авансовый платёж {#{% bs_icon 'pencil-square' size='1.2em' color='black' extra_classes='pl-0 mb-1' %}#}&#9745;</div>
+                                                </a>
+                                            {% endif %}
+                           </div>
+                        </div>
+                    </div>
+                </div>
+              {% endif %}
+
+           {% endfor %}
+
+           <div class="d-flex w-100 justify-content-end mt-2">
+               Всего по выборке:&nbsp;<b>{{ total_sum|floatformat:2|intcomma }}</b>&nbsp;р. <b>{{ total_volume|floatformat:2|intcomma }}</b>&nbsp;м3&nbsp;&nbsp;&nbsp;
+           </div>
+
+           <nav aria-label="...">
+                <ul class="pagination justify-content-center mt-3">
+                    {% if page_.has_previous %}
+                    <li class="page-item">
+                    {% else %}
+                    <li class="page-item disabled">
+                    {% endif %}
+                        <a class="page-link" href="/concrete/?page={{ page|add:-1 }}&from={{ datefrom }}&to={{ dateto }}&s={{ filter_supplier }}&o={{ filtered_object }}&h={{ filtered_house }}&a={{ prepay_only }}">Предыдущая</a>
+                    </li>
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{page_.number}} из {{pages.num_pages}}</span>
+                    </li>
+                    {% if page_.has_next %}
+                    <li class="page-item">
+                    {% else %}
+                    <li class="page-item disabled">
+                    {% endif %}
+                        <a class="page-link" href="/concrete/?page={{ page|add:1 }}&from={{ datefrom }}&to={{ dateto }}&s={{ filter_supplier }}&o={{ filtered_object }}&h={{ filtered_house }}&a={{ prepay_only }}">Следующая</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    {% else %}
+        <h3 class="mb-3 mt-3">Список пуст</h3>
+    {% endif %}
+{% endspaceless %}
+
+     <form method="post" class="form" style="display: inline">
+        {% csrf_token %}
+                <table>
+                    <tr>
+                        <td>
+                            {{ form.datefrom.label_tag }}
+                            {{ form.datefrom }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            {{ form.dateto.label_tag }}
+                            {{ form.dateto }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            {{ form.object.label_tag }}
+                            {{ form.object }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            {{ form.house.label_tag }}
+                            {{ form.house }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            {{ form.filter_supplier.label_tag }}
+                            {{ form.filter_supplier }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="mb-2 mt-3 form-check form-switch">
+                                Только авансы{{ form.prepay_only }}
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                        {% buttons %}
+                            <table>
+                                <tr>
+                                    <td style="width: 150px">
+                                <button name="submit"  class="w-100 btn btn-primary" style="margin-top: 15px; padding: 5px; width: 150px">{#{% bs_icon 'funnel-fill' size='1.5em' color='white' %}#}&#128269;</button>
+                                        </td>
+                                    <td style="width: 100px">
+                                <a href="{% url 'project:filteredconcretedelivery'%}">
+                                    <button type="button" class="btn btn-secondary" style="margin-top: 15px; padding: 5px">{#{% bs_icon 'funnel' size='1.5em' color='white' %}{% bs_icon 'x-lg' size='1.5em' color='white' %}#}&#10060;&#128269;</button>
+                                </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        {% endbuttons %}
+                        </td>
+                    </tr>
+                </table>
+        {{ form.media }}
+
+    </form>
+{% endblock %}

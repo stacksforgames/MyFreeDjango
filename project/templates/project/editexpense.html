@@ -1,0 +1,92 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% block mycss %} <style> .readonlyfield {border: 1px solid #ced4da; border-radius: .25rem; padding: .375rem 2.25rem .375rem .75rem; background-color: #FAFAFA} </style> {% endblock %}
+
+
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h3 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Корректировка расходной операции по кассе {{ cashreg.name }}</h3>
+            Номер заявки:<br>
+            <div class="readonlyfield">
+                {{ content.bid.number }}
+            </div>
+            Объект:<br>
+            <div class="readonlyfield">
+                {{ content.bid.object.name }}
+            </div>
+            Дом:<br>
+            <div class="readonlyfield">
+                {{ content.house.name }}
+            </div>
+            Описание (материала/работ/вида техники):<br>
+            <div class="readonlyfield">
+                {{ content.title }}
+            </div>
+            Дата работ/поставки:<br>
+            <div class="readonlyfield">
+                {{ content.date|date:"d/m/Y" }}
+            </div>
+            Вид расходов:<br>
+            <div class="readonlyfield">
+                {{ content.get_type_display }}
+            </div>
+            Нал/б.нал/бартер:<br>
+            <div class="readonlyfield">
+                {{ content.get_cash_display }}
+            </div>
+            Количество:<br>
+            <div class="readonlyfield">
+                {{ content.quantity }}
+            </div>
+            Ед. измерения:<br>
+            <div class="readonlyfield">
+                {{ content.get_measure_display }}
+            </div>
+            Стоимость за ед.:<br>
+            <div class="readonlyfield">
+                {{ content.price }}
+            </div>
+            Поставщик:<br>
+            <div class="readonlyfield">
+                {{ content.supplier.name }}
+            </div>
+            Этап строительства:<br>
+            <div class="readonlyfield">
+                {{ content.phase.name }}
+            </div>
+            Смета:<br>
+            <div class="readonlyfield">
+                {{ content.estimate.name }}
+            </div>
+            Комментарий:<br>
+            <div class="readonlyfield">
+                {{ content.comment }}
+            </div>
+        {{ form.subcash.label_tag }}<br>
+        {{ form.subcash }}
+        {#<fieldset disabled>#}
+        {{ form.expense_account.label_tag }}<br>
+        {{ form.expense_account }}
+        {{ form.credit_account.label_tag }}<br>
+        {{ form.credit_account }}
+        {#</fieldset>#}
+        {{ form.media }}
+        {% buttons %}
+            <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Сохранить</button>
+        {% endbuttons %}
+    </form>
+     <div class="d-flex justify-content-between" style="max-width: 330px; margin: auto; padding-left: 15px; padding-right: 15px;">
+            <a class="btn btn-sm btn btn-secondary" href="{% url 'project:filteredbalances' %}?{{ rollback }}">&#x21b6; Вернуться</a>&nbsp;
+            <a class="confirm-erase btn btn-sm btn btn-warning" href="{% url 'project:eraseexpensetransaction' content.id %}?{{ rollback }}">&#x2612; Сброс счетов</a>&nbsp;
+    </div>
+    <script type="text/javascript">
+        $(document).on('click', '.confirm-erase', function(){
+                return confirm('Вы действительно хотите очистить счета в этом документе?');
+            })
+    </script>
+{% endblock content %}

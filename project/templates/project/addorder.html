@@ -1,0 +1,105 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load bootstrap_icons %}
+{% load filters %}
+
+
+{% block content %}
+    <form method="post" id="myForm" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Добавление нового заказа</h1>
+
+        {% if error %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ error }}</div>
+        {% endif %}
+
+        {{ form.sample.label_tag }}<br>
+        {{ form.sample }}
+        {{ form.object.label_tag }}<br>
+        {{ form.object }}
+        {{ form.house.label_tag }}<br>
+        {{ form.house }}
+
+        {{ form.comment.label_tag }}<br>
+        {{ form.comment }}
+
+        <div class="mb-2 mt-3 form-check form-switch">
+            Отправить на согласование{{ form.agreement }}
+        </div>
+
+
+        {{ form.media }}
+
+        {% buttons %}
+            <button name="submit" id="the-button-id" type="submit" class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Сохранить</button>
+        {% endbuttons %}
+    </form>
+    <div class="d-flex justify-content-center">
+            <a class="btn btn-sm btn btn-secondary" href="{% url 'project:orders' %}">{% bs_icon 'reply' size='1.5em' color='white' extra_classes='mb-1' %} Вернуться</a>
+    </div>
+
+    {% if samples %}
+
+        <div class="accordion pt-2 pb-5" id="accordionPanelsStayOpen" style="max-width: 30em; margin: auto">
+            <h5 class="h5 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Доступные шаблоны заказов:</h5>
+        {% for sample in samples %}
+                <div class="accordion-item">
+                    <h3 class="accordion-header" id="panelsStayOpen-heading-{{ sample.id }}">
+                        {% if sample_id == sample.id %}
+                            <button class="accordion-button"  style="padding: 12px" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse-{{ sample.id }}" aria-expanded="true" aria-controls="panelsStayOpen-collapse-{{ sample.id }}">
+                        {% else %}
+                            <button class="accordion-button collapsed"  style="padding: 12px" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse-{{ sample.id }}" aria-expanded="false" aria-controls="panelsStayOpen-collapse-{{ sample.id }}">
+                        {% endif %}
+                            <table width="100%">
+                                <tr>
+                                    <td><b>{{ sample.title }}</b></td>
+                                </tr>
+                            </table>
+                        </button>
+                    </h3>
+                    {% if sample_id == sample.id %}
+                        <div id="panelsStayOpen-collapse-{{ sample.id }}" class="accordion-collapse collapse show" aria-labelledby="panelsStayOpen-heading-{{ sample.id }}">
+                    {% else %}
+                        <div id="panelsStayOpen-collapse-{{ sample.id }}" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-heading-{{ sample.id }}">
+                    {% endif %}
+                        <div class="accordion-body pt-2 pb-1">
+                            <div class="accordion" id="accordionPanelsStayOpen-{{ sample.id }}">
+                                <div class="list-group" style="overflow-y: auto;">
+                                    {% for detail in sample.sampledetail_set.all|in_sample %}
+                                            <a href="#" class="list-group-item list-group-item-action">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h6 class="mb-1"><span class="badge rounded-pill bg-warning">{{ forloop.counter}}</span> {{ detail.description }}</h6>
+                                                    <small>
+                                                        <span class="badge rounded-pill bg-info">{{ detail.quantity }}</span> {{ detail.get_measure_display }}
+                                                    </small>
+                                                </div>
+                                                <p class="mb-1">
+                                                    {% if detail.code and detail.code.strip %}
+                                                            Код: {{ detail.code }}
+                                                    {% endif %}
+                                                </p>
+
+                                            </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        {% endfor %}
+        </div>
+
+    {% else %}
+        <h3 class="mb-3 mt-3">Список шаблонов пуст</h3>
+    {% endif %}
+
+
+    <script type="text/javascript">
+        $('#myForm').one('submit', function() {
+            $(this).find('button[type="submit"]').attr('disabled','disabled');
+        });
+    </script>
+{% endblock %}

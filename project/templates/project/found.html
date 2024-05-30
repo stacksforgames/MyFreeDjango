@@ -1,0 +1,52 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load bootstrap_icons %}
+
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Поиск заявок по номеру</h1>
+
+        {# {% bootstrap_form form layout="vertical" size="small" show_label=True %} #}
+
+        {{ form.number.label_tag }}<br>
+        {{ form.number }}
+        {% if form.number.errors %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ form.number.errors }}</div>
+        {% endif %}
+
+
+        {% buttons %}
+            <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Искать</button>
+        {% endbuttons %}
+    </form>
+    {% if archlist or bidlist %}
+        <div class="list-group list-group-flush border-bottom scrollarea" style="overflow-y: auto;">
+            {% for item in bidlist %}
+                <a href="{% url 'project:onebid' item.id %}?q={{ number }}" class="list-group-item list-group-item-action py-2 lh-tight">
+                    <div class="d-flex w-100 align-items-center justify-content-between">
+                        <strong class="mb-1"><span class="badge rounded-pill bg-warning">{{ item.number }}</span><span class="badge rounded-pill bg-info">{{ item.object.name }}</span>{{ item.title }}</strong>
+                        <small>({{ item.owner.username }}) {{ item.date|date:"d/m/Y G:i" }}
+                        </small>
+                    </div>
+                </a>
+            {% endfor %}
+            {% for item in archlist %}
+                <a href="{% url 'project:onearchiveitem' item.id %}?q={{ number }}" class="list-group-item list-group-item-action py-2 lh-tight">
+                    <div class="d-flex w-100 align-items-center justify-content-between">
+
+                        <strong class="mb-1"><span class="badge rounded-pill bg-warning">{% bs_icon 'box-seam' size='1.0em' color='black'%}{{ item.number }}</span><span class="badge rounded-pill bg-info">{{ item.object.name }}</span>{{ item.title }}</strong>
+                        <small>({{ item.owner.username }}) {{ item.date|date:"d/m/Y G:i" }}
+                        </small>
+
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning">Ничего не найдено по вашему запросу</div>
+    {% endif %}
+{% endblock %}

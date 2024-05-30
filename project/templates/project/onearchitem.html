@@ -1,0 +1,78 @@
+{% extends 'main/base.html' %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load bootstrap_icons %}
+{% load filters %}
+
+{% block content %}
+        <nav class="navbar navbar-light bg-light">
+                <a class="btn btn-success mt-1" href="{% url 'project:archedit' arch_.id %}?page={{ page }}&q={{ number }}">
+                                    {% bs_icon 'pencil-square' size='1.5em' color='white' extra_classes='mb-1' %}
+                     <span class="fs-7 fw-semibold float-left">Состав архивной заявки №{{arch.number}} ({{arch_.title}}) от {{arch_.date|date:"d.m.Y"}} по объекту {{arch_.object.name}}</span>
+                </a>
+                    <ul class="nav nav-pills">
+                        {# <li class="nav-item"> #}
+                                <a class="btn btn-secondary active mt-1" href="#">
+                                    {% bs_icon 'clipboard-plus' size='1.5em' color='white' extra_classes='mb-1' %}
+                                    <span class="fs-7 fw-semibold float-right">Добавить</span>
+                                </a>
+                    </ul>
+        </nav>
+
+    {% if contents_ %}
+    <div class="list-group list-group-flush border-bottom scrollarea" style="overflow-y: auto;">
+        {% for item in contents_ %}
+            <a href="{% url 'project:detailsedit' item.id %}?page={{ page }}&q={{ number }}" class="list-group-item list-group-item-action list-group-item-success py-2 lh-tight">
+            <div>
+            <div class="d-flex w-100 align-items-center justify-content-between">
+                <strong class="mb-1">{{item.house.name}}</strong>
+                <small>Стоимость: <b>{{item.summary}}р.</b> ({{item.get_cash_display}})
+                </small>
+            </div>
+            <div class="d-flex w-100 align-items-center justify-content-between">
+                <strong class="mb-1">[{{ item.date|date:"d/m/Y" }}] {{item.title}}</strong>
+                <small>({{item.supplier}}) {{item.comment}}
+                                {# {% bs_icon 'clipboard-plus' size='1.5em' color='white' extra_classes='mb-1' %} #}
+                </small>
+            </div>
+            </div>
+            </a>
+        {% endfor %}
+            <div class="list-group-item list-group-item-action  list-group-item-success py-2 lh-tight">
+                <div class="d-flex w-100 align-items-center justify-content-between">
+                    <strong class="mb-1">Сумма, итого:</strong>
+                    <strong class="mb-1">{{sum.summary|floatformat:2}}р.</strong>
+                </div>
+            </div>
+    </div>
+    {% else %}
+        <h3>заявка пуста</h3>
+    {% endif %}
+   <div>
+        <nav class="navbar navbar-light bg-light px-3">
+            {% if number %}
+                <a class="btn btn-secondary" href="{% url 'project:found' %}?page={{ page }}&q={{ number }}">{% bs_icon 'reply' size='1.5em' color='white' extra_classes='mb-1' %} Вернуться</a>
+            {% else %}
+                <a class="btn btn-secondary" href="{% url 'project:archive' %}?page={{ page }}&q={{ number }}">{% bs_icon 'reply' size='1.5em' color='white' extra_classes='mb-1' %} Вернуться</a>
+            {% endif %}
+
+            <ul class="nav nav-pills">
+                <li class="nav-item">
+                        {% if arch_.highlighted %}
+                            <a class="btn btn-secondary mt-1" href="#">{% bs_icon 'bookmark-x' size='1.5em' color='white' extra_classes='mb-1' %} Снять отметку
+                            </a>
+                        {% else %}
+                            <a class="btn btn-secondary mt-1" href="#">{% bs_icon 'bookmark-star' size='1.5em' color='white' extra_classes='mb-1' %} Отметить
+                            </a>
+                        {% endif %}
+
+                        <a class="btn btn-danger mt-1" href="{% url 'project:archdelete' arch_.id %}?page={{ page }}&q={{ number }}">{% bs_icon 'trash' size='1.5em' color='white' extra_classes='mb-1' %} Удалить заявку
+                        </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+
+{% endblock %}

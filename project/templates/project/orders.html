@@ -1,0 +1,215 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load bootstrap_icons %}
+{% load filters %}
+{% load tags %}
+{% load humanize %}
+
+{% block content %}
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <div>
+                    <h1>Мои заказы</h1>
+                </div>
+                    {% is_concreter request as is_concreter_ %}
+                    {% if is_concreter_ %}
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="btn btn-secondary active" href="{% url 'project:neworder' %}">
+                                <span class="fs-7 fw-semibold float-right">&#10010;&nbsp;Создать</span>
+                            </a>
+                        </li>
+                    </ul>
+                    {% endif %}
+            </div>
+        </nav>
+    {% if orders %}
+        <div class="accordion pt-2" id="accordionPanelsStayOpen" style="max-width: 50em; margin: auto">
+            {% for order in orders %}
+                <div class="accordion-item">
+                    <h3 class="accordion-header" id="panelsStayOpen-heading-{{ order.id }}">
+                        {% if order_id == order.id %}
+                            <div class="accordion-button"  style="padding: 12px" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse-{{ order.id }}" aria-expanded="true" aria-controls="panelsStayOpen-collapse-{{ order.id }}">
+                        {% else %}
+                            <button class="accordion-button collapsed"  style="padding: 12px" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse-{{ order.id }}" aria-expanded="false" aria-controls="panelsStayOpen-collapse-{{ order.id }}">
+                        {% endif %}
+                            <div class="w-100">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1"><span class="badge rounded-pill bg-warning">{{ order.id}}</span> [{{ order.date|date:"d/m/Y" }}] <span class="badge rounded-pill bg-info">{{ order.object.name }}/{{ order.house.name }}</span> {{ order.sample.title}}</h6>
+                                    <small>
+                                        <span class="badge rounded-pill bg-success">{{ order.get_status_display}}</span>
+                                    </small>
+                                </div>
+                                <div class="d-flex w-100 justify-content-between">
+                                    {{ order.comment }}
+                                    <small>
+                                        ({{ order.owner.first_name}}&nbsp;{{ order.owner.last_name}})
+                                    </small>
+                                </div>
+                            </div>
+                        </button>
+                    </h3>
+                    {% if order == order.id %}
+                        <div id="panelsStayOpen-collapse-{{ order.id }}" class="accordion-collapse collapse show" aria-labelledby="panelsStayOpen-heading-{{ order.id }}">
+                    {% else %}
+                        <div id="panelsStayOpen-collapse-{{ order.id }}" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-heading-{{ order.id }}">
+                    {% endif %}
+                        <div class="accordion-body pt-2 pb-0">
+                            <div class="accordion" id="accordionPanelsStayOpen-{{ order.id }}">
+                                <div class="list-group" style="overflow-y: auto;">
+                                    {% for detail in order.orderdetail_set.all|in_sample %}
+                                            <a class="list-group-item list-group-item-action">
+                                              <div class="w-100">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h6 class="mb-1"><span class="badge rounded-pill bg-warning">{{ forloop.counter}}</span> {{ detail.title }}</h6>
+                                                    <small>
+                                                        {% if detail.quantity != detail.sample_quantity %}
+                                                            <span class="badge rounded-pill bg-primary">{{ detail.quantity }}</span>({{ detail.sample_quantity }}) {{ detail.get_measure_display }}
+                                                        {% else %}
+                                                            <span class="badge rounded-pill bg-info">{{ detail.quantity }}</span>({{ detail.sample_quantity }}) {{ detail.get_measure_display }}
+                                                        {% endif %}
+                                                    </small>
+                                                </div>
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    {% if detail.code and detail.code.strip %}
+                                                        Код: {{ detail.code }}
+                                                    {% else %}
+                                                        &nbsp;
+                                                    {% endif %}
+                                                    <small>
+                                                        Цена: <b>{{ detail.price|floatformat:2|intcomma}}</b>р. Сумма: <b>{{ detail.price | multiply:detail.quantity|floatformat:2|intcomma}}</b>р.
+                                                    </small>
+                                                </div>
+                                              </div>
+                                            </a>
+                                    {% endfor %}
+                                    <div class="d-flex w-100 justify-content-end mt-2">
+                                        {% if order.supplier %} Поставщик: {{ order.supplier.name }}&nbsp;&nbsp;&nbsp;{% endif %}<b>Сумма: {{ order.orderdetail_set.all|summary|floatformat:2|intcomma }}</b>&nbsp;&nbsp;&nbsp;&nbsp;
+                                    </div>
+                                </div>
+
+                                <nav class="navbar">
+                                    <div class="container-fluid justify-content-center px-0 mb-3">
+                                        {% is_concreter request as is_concreter_ %}
+                                        {% if is_concreter_ and order.owner.id == request.user.id %}
+                                            {% if order.status == '0' %}
+                                                <a class="btn btn-secondary" href="{% url 'project:editorder' order.id %}?page={{ page }}&f={{ status }}">&#9776;&nbsp;Редактировать</a>
+                                            {% elif order.status == '4' %}
+                                                <a class="btn btn-secondary" href="{% url 'project:orderreceiving' order.id %}?page={{ page }}&f={{ status }}">&#9745;&#9746;&nbsp;Ввести информацию о доставке заказа</a>
+                                            {% endif %}
+
+                                        {% endif %}
+
+                                        {% is_boss request as is_boss_ %}
+                                        {% if is_boss_ and order.status == '1' %}
+                                            <a class="btn btn-warning" href="{% url 'project:orderresolve' order.id %}?page={{ page }}&f={{ status }}">&#9873;&nbsp;Подготовить решение</a>&nbsp;
+                                        {% endif %}
+
+                                        {% is_supplier request as is_supplier_ %}
+                                        {% if is_supplier_ %}
+                                            {% if order.status == '2' %}
+                                                <a class="btn btn-secondary" href="{% url 'project:orderprocessing' order.id %}?page={{ page }}&f={{ status }}">&#9850;&nbsp;Обработка заказа</a>
+                                            {% endif %}
+                                            {% if order.status == '5' or order.status == '6' %}
+                                                <a class="btn btn-secondary" href="{% url 'project:orderclosing' order.id %}?page={{ page }}&f={{ status }}">&#10066;&nbsp;Завершение заказа</a>
+                                            {% endif %}
+                                        {% endif %}
+
+                                        {% is_accountant request as is_accountant_ %}
+                                        {% if is_accountant_ and order.status == '3' %}
+                                            <a class="btn btn-warning" href="{% url 'project:orderreturn' order.id %}?page={{ page }}&f={{ status }}">&#8617;&nbsp;Вернуть снабженцу</a>&nbsp;
+                                            <a class="btn btn btn-secondary" href="{% url 'project:orderpayment' order.id %}?page={{ page }}&f={{ status }}">&#8381;&nbsp;Оплатить заказ</a>
+                                        {% endif %}
+                                    </div>
+                                </nav>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+           <nav aria-label="...">
+                <ul class="pagination justify-content-center mt-3">
+                    {% if page_.has_previous %}
+                    <li class="page-item">
+                    {% else %}
+                    <li class="page-item disabled">
+                    {% endif %}
+                        <a class="page-link" href="{% url 'project:orders' %}?page={{ page|add:-1 }}&f={{ status }}"><<</a>
+                    </li>
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{page_.number}} из {{pages.num_pages}}</span>
+                    </li>
+                    <li class="page-item" aria-current="page">
+                        <a class="page-link" href="#" id="go_page">&#10150;{{page_.number}}</a>
+                    </li>
+                    {% if page_.has_next %}
+                    <li class="page-item">
+                    {% else %}
+                    <li class="page-item disabled">
+                    {% endif %}
+                        <a class="page-link" href="{% url 'project:orders' %}?page={{ page|add:1 }}&f={{ status }}">>></a>
+                    </li>
+                </ul>
+            <input class="w-100" type="range" min="1" step="1" max="{{pages.num_pages}}" value="{{ page }}"  id="myRange">
+            </nav>
+
+        </div>
+    {% else %}
+        <h3 class="mb-3 mt-3">Список заказов пуст</h3>
+    {% endif %}
+    <form method="post" class="form" style="padding: 5px; max-width: 50em; margin: auto">
+        {% csrf_token %}
+        <table>
+            <tr>
+                <td>
+                    {{ form.status.label_tag }}
+                </td>
+                <td>
+                    <div>
+                        {{ form.status }}
+                    </div>
+                </td>
+                <td>
+                {% buttons %}
+                    <button name="submit"  class="w-100 btn btn-primary" style="margin-top: 15px; padding: 5px">{% bs_icon 'funnel' size='1.5em' color='white' %}</button>
+                {% endbuttons %}
+                </td>
+        </table>
+    </form>
+    <script>
+    var getUrlParameter = function getUrlParameter(sParam) {
+        var sPageURL = window.location.search.substring(1),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+            }
+        }
+        return false;
+        };
+        var slider = document.getElementById("myRange");
+        var output = document.getElementById("go_page");
+        var filter = getUrlParameter("f");
+        if (filter == false) {
+            filter = 'None'
+        }
+        if (slider != null) {
+            output.innerHTML = "&#10150;" + slider.value;
+
+            slider.oninput = function() {
+                output.innerHTML = "&#10150;" + this.value;
+                $(output).attr("href", "/orders/?page=" + this.value + "&f=" + filter)
+            }
+        }
+    </script>
+{% endblock %}

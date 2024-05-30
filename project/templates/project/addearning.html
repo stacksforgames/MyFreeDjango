@@ -1,0 +1,57 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load bootstrap_icons %}
+
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Добавление новой приходной операции по кассе {{ cashregister.name }}</h1>
+
+        {% if errors %}
+            <div class="alert alert-danger fade show mt-0" role="alert">
+                <ul>
+                {% for item in errors %}
+                    <li>{{ item }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        {{ form.object.label_tag }}<br>
+        {{ form.object }}
+        {{ form.comment.label_tag }}<br>
+        {{ form.comment }}
+        {{ form.date.label_tag }}<br>
+        {{ form.date }}
+        {% if form.date.errors %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ form.date.errors }}</div>
+        {% endif %}
+        {{ form.summary.label_tag }}<br>
+        {{ form.summary }}
+        {% if form.summary.errors %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ form.summary.errors }}</div>
+        {% endif %}
+        {{ form.supplier.label_tag }}<br>
+        {{ form.supplier }}
+
+        {{ form.subcash.label_tag }}<br>
+        {{ form.subcash }}
+        {{ form.expense_account.label_tag }}<br>
+        {{ form.expense_account }}
+        {{ form.credit_account.label_tag }}<br>
+        {{ form.credit_account }}
+
+        {{ form.media }}
+
+        {% buttons %}
+            <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Сохранить</button>
+        {% endbuttons %}
+    </form>
+    <div class="d-flex justify-content-center">
+            <a class="btn btn-sm btn btn-secondary" href="{% url 'project:filteredbalances' %}?{{ rollback }}">&#x21b6; Вернуться</a>&nbsp;
+    </div>
+
+{% endblock content %}

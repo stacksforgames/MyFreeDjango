@@ -1,0 +1,338 @@
+{% extends 'main/base.html' %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% block mycss %} <style> .readonlyfield {border: 1px solid #ced4da; border-radius: .25rem; padding: .375rem 2.25rem .375rem .75rem; background-color: #FAFAFA} </style> {% endblock %}
+
+{% load filters %}
+{% load tags %}
+
+{% block content %}
+    {% is_boss request as is_boss_ %}
+    {% is_accountant request as is_accountant_ %}
+    {% get_reservation_color contract.reservation_type contract.reservation_date as reservation_color %}
+    <div style="max-width: 50em; margin: auto">
+        <nav class="navbar navbar-light bg-light ms-auto">
+            <ul class="h3 nav nav-pills px-2 py-2">Данные контракта</ul>
+            <ul class="nav nav-pills px-2">
+               Статус:&nbsp;<span class="badge rounded-pill bg-dark py-2">{% if contract.revoked %}Аннулирован{% else %}{{ contract.get_status_display }}{% endif %}</span>{% if contract.reservation_type != 'a' %}<span class="badge rounded-pill py-2 {{ reservation_color }}">Б&rarr;{{ contract.reservation_date|date:"d.m.Y" }}</span>{% endif %}
+            </ul>
+        </nav>
+    {% if contract.revoked %}
+    <div class="readonlyfield" style="background-color: red;">
+        <b>Причина аннулирования:&nbsp;</b>{{ contract.comment }}
+    </div>
+    {% endif %}
+    <div class="readonlyfield">
+        <b>Дата контракта:&nbsp;</b>{{ contract.date|date:"d.m.Y" }}
+    </div>
+    <div class="readonlyfield">
+        <b>Номер договора:&nbsp;</b>{{ contract.get_type_display }}-{{ contract.number }}
+    </div>
+    <div class="readonlyfield">
+        <b>Объект/литер/апартамент:&nbsp;</b>{{ contract.object.name }}/{{ contract.house.name }}/{{ contract.apartment }}
+    </div>
+    {% if contract.title %}
+    <div class="readonlyfield">
+            <b>Описание:&nbsp;</b>{{ contract.title }}
+    </div>
+    {% endif %}
+    <div class="readonlyfield">
+        <b>Клиент:&nbsp;</b>{{ contract.client }}
+    </div>
+    <div class="readonlyfield">
+        <b>агент(агентство):&nbsp;</b>{{ contract.agency }}
+    </div>
+    <div class="readonlyfield">
+        Менеджер ОП:&nbsp;{{ contract.owner.last_name }}&nbsp;{{ contract.owner.first_name }}
+    </div>
+    <div class="readonlyfield">
+        <b>Помещение:</b>&nbsp;{{ contract.apartment }}
+    </div>
+    <div class="readonlyfield">
+        <b>Площадь:</b>&nbsp;{{ contract.square }}&nbsp;кв.м
+    </div>
+    <div class="readonlyfield">
+        <b>Цена по шахматке:</b>&nbsp;{{ contract.price|amount_space_separator }}&nbsp;руб.
+    </div>
+    <div class="readonlyfield">
+        <b>Скидка АН:</b>&nbsp;{{ contract.agency_discount|amount_space_separator }}&nbsp;руб.
+    </div>
+    <div class="readonlyfield">
+        <b>Скидка застройщика:</b>&nbsp;{{ contract.developer_discount|amount_space_separator }}&nbsp;руб.
+    </div>
+    <div class="readonlyfield">
+        <b>Итого сумма контракта:</b>&nbsp;{{ contract.price|subtraction:contract.agency_discount|subtraction:contract.developer_discount|amount_space_separator }}&nbsp;руб.
+    </div>
+    <div class="readonlyfield">
+        {% if incoming %}
+            <div class="list-group list-group-flush border-bottom scrollarea" style="overflow-y: auto;">
+                {% for item in incoming %}
+                    {% if is_boss_ or is_accountant_ %}
+                        {% if contract.revoked %}
+                            <a href="#" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                        {% else %}
+                            {% if contract.status == 'c' %}
+                                <a href="{% url 'project:turnovereditperform' item.id %}{% if rollback %}?{{ rollback }}{% endif %}" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                            {% else %}
+                                <a href="{% url 'project:turnoveredit' item.id %}{% if rollback %}?{{ rollback }}{% endif %}" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                            {% endif %}
+                        {% endif %}
+                    {% else %}
+                        {% if item.performed %}
+                            <a href="#" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                        {% else %}
+                            {% if contract.reservation_type == 'c' %}
+                                <a href="#" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                            {% else %}
+                                {% if contract.status != 'a' %}
+                                    <a href="{% url 'project:turnovercommentedit' item.id %}{% if rollback %}?{{ rollback }}{% endif %}" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                                {% else %}
+                                    <a href="{% url 'project:turnoveredit' item.id %}{% if rollback %}?{{ rollback }}{% endif %}" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                                {% endif %}
+                           {% endif %}
+                        {% endif %}
+                    {% endif %}
+                        <div class="d-flex w-100 align-items-center justify-content-between">
+                            <p class="mb-1">
+                                {% if item.date < datenow and item.performed == False %}&#9200;{% endif %}<span class="badge bg-secondary">{{ item.date|date:"d/m/Y" }}{% if item.actualdate %}&rarr;&#128176;{{ item.actualdate|date:"d/m/Y" }}{% endif %}</span><span class="badge bg-secondary">{{ item.get_type_display }}</span><span class="badge bg-secondary">{{ item.amount|amount_space_separator }} руб.</span><br>
+                                {{ item.comment }}
+                            </p>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    <div class="readonlyfield">
+        <u><b>Комиссия ОП:</b></u><br>
+        {{ contract.seller_commission_calc }}&nbsp;=&nbsp;{{ contract.seller_commission|amount_space_separator }}&nbsp;руб.
+    </div>
+    <div class="readonlyfield">
+        {% if comm_ex %}
+            <div class="list-group list-group-flush border-bottom scrollarea" style="overflow-y: auto;">
+                {% for item in comm_ex %}
+                    {% if is_boss_ or is_accountant_ %}
+                        {% if contract.revoked %}
+                            <a href="#" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                        {% else %}
+                            {% if contract.status == 'c' %}
+                                <a href="{% url 'project:turnovereditperform' item.id %}{% if rollback %}?{{ rollback }}{% endif %}" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                            {% else %}
+                                <a href="{% url 'project:turnoveredit' item.id %}{% if rollback %}?{{ rollback }}{% endif %}" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                            {% endif %}
+                        {% endif %}
+                    {% else %}
+                        {% if item.performed %}
+                            <a href="#" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                        {% else %}
+                            {% if contract.reservation_type == 'c' %}
+                                <a href="#" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                            {% else %}
+                                {% if contract.status != 'a' %}
+                                    <a href="{% url 'project:turnovercommentedit' item.id %}{% if rollback %}?{{ rollback }}{% endif %}" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                                {% else %}
+                                    <a href="{% url 'project:turnoveredit' item.id %}{% if rollback %}?{{ rollback }}{% endif %}" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                        <div class="d-flex w-100 align-items-center justify-content-between">
+                            <p class="mb-1">
+                                <span class="badge bg-secondary">{{ item.date|date:"d/m/Y" }}{% if item.actualdate %}&rarr;&#128176;{{ item.actualdate|date:"d/m/Y" }}{% endif %}</span><span class="badge bg-secondary">{{ item.get_type_display }}</span><span class="badge bg-secondary">{{ item.amount|amount_space_separator }} руб.</span><br>
+                                {{ item.comment }}
+                            </p>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    <div class="readonlyfield">
+        <u><b>Комиссия АН:</b></u><br>
+        {{ contract.agency_commission_calc }}&nbsp;=&nbsp;{{ contract.agency_commission|amount_space_separator }}&nbsp;руб.
+    </div>
+    <div class="readonlyfield">
+        {% if comm_ag %}
+            <div class="list-group list-group-flush border-bottom scrollarea" style="overflow-y: auto;">
+                {% for item in comm_ag %}
+                    {% if is_boss_ or is_accountant_ %}
+                        {% if contract.revoked %}
+                            <a href="#" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                        {% else %}
+                            {% if contract.status == 'c' %}
+                                <a href="{% url 'project:turnovereditperform' item.id %}{% if rollback %}?{{ rollback }}{% endif %}" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                            {% else %}
+                                <a href="{% url 'project:turnoveredit' item.id %}{% if rollback %}?{{ rollback }}{% endif %}" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                            {% endif %}
+                        {% endif %}
+                    {% else %}
+                        {% if item.performed %}
+                            <a href="#" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                        {% else %}
+                            {% if contract.reservation_type == 'c' %}
+                                <a href="#" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                            {% else %}
+                                {% if contract.status != 'a' %}
+                                    <a href="{% url 'project:turnovercommentedit' item.id %}{% if rollback %}?{{ rollback }}{% endif %}" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                                {% else %}
+                                    <a href="{% url 'project:turnoveredit' item.id %}{% if rollback %}?{{ rollback }}{% endif %}" class="list-group-item list-group-item-action {% if item.performed %}list-group-item-success{% else %}list-group-item-danger{% endif %} py-2 lh-tight">
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                        <div class="d-flex w-100 align-items-center justify-content-between">
+                            <p class="mb-1">
+                                <span class="badge bg-secondary">{{ item.date|date:"d/m/Y" }}{% if item.actualdate %}&rarr;&#128176;{{ item.actualdate|date:"d/m/Y" }}{% endif %}</span><span class="badge bg-secondary">{{ item.get_type_display }}</span><span class="badge bg-secondary">{{ item.amount|amount_space_separator }} руб.</span><br>
+                                {{ item.comment }}
+                            </p>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    <div class="readonlyfield">
+        <b>Итого комиссии:&nbsp;{{ contract.agency_commission|addition:contract.seller_commission|amount_space_separator }}&nbsp;руб.</b>
+    </div>
+    <div class="readonlyfield">
+        <b>На руки застройщику:&nbsp;{{ contract.price|subtraction:contract.agency_discount|subtraction:contract.developer_discount|subtraction:contract.agency_commission|subtraction:contract.seller_commission|amount_space_separator }}&nbsp;руб.</b>
+    </div>
+    <div class="readonlyfield">
+        <b>Стоимость за м2:&nbsp;</b>{{ contract.price|subtraction:contract.agency_discount|subtraction:contract.developer_discount|subtraction:contract.agency_commission|subtraction:contract.seller_commission|dividing:contract.square|amount_space_separator }}&nbsp;руб.
+    </div>
+    <div class="readonlyfield">
+        <b>Чек отбит:&nbsp;</b>{% if contract.receipt %}&#10004;{% endif %}
+    </div>
+    <div class="readonlyfield">
+        <b>Оригинал в наличии:&nbsp;</b>{% if contract.onhand %}&#10004;{% endif %}
+    </div>
+    <div class="list-group list-group-flush border-bottom scrollarea" style="overflow-y: auto;">
+    <div>
+        <nav class="navbar navbar-light bg-light px-3">
+            <a class="btn btn-secondary" href="{% url 'project:contracts' %}{% if rollback %}?{{ rollback }}{% endif %}">&#x21b6; Вернуться</a>
+            <ul class="nav nav-pills">
+                {% if contract.status == 'c' and contract.income_equal and contract.paid_equal %}
+                    <li class="nav-item">
+                        <a class="confirm-contract-close btn btn-primary mt-1" href="{% url 'project:contractperformed' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">Завершить</a>
+                    </li>&nbsp;
+                {% endif %}
+                {% if contract.status == 'a' %}
+                    {% if contract.performed == 0 and contract.reservation_type != 'c' %}
+                        <li class="nav-item">
+                            <a class="confirm-contract-delete btn btn-danger mt-1" href="{% url 'project:contractdelete' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">Удалить</a>
+                        </li>&nbsp;
+                    {% endif %}
+                    {% if is_boss_ or is_accountant_ %}
+                        {% if contract.reservation_type == 'a' %}
+                            <li class="nav-item">
+                                <a class="btn btn-success mt-1" href="{% url 'project:contractaccept' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">Принять</a>
+                            </li>&nbsp;
+                        {% endif %}
+                    {% endif %}
+                    {% if contract.reservation_type != 'c' %}
+                        <li class="nav-item">
+                            <a class="btn btn-success mt-1" href="{% url 'project:contractedit' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">Корректировать контракт</a>
+                        </li>&nbsp;
+                    {% endif %}
+                {% endif %}
+                {% if contract.status == 'b' %}
+                    {% if is_boss_ or is_accountant_ %}
+                        <li class="nav-item">
+                            <a class="btn btn-success mt-1" href="{% url 'project:contractreturn' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">На доработку</a>
+                        </li>&nbsp;
+                    {% endif %}
+                    {% if is_boss_ %}
+                        <li class="nav-item">
+                            <a class="btn btn-success mt-1" href="{% url 'project:contractexecute' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">На исполнение</a>
+                        </li>&nbsp;
+                    {% endif %}
+                {% endif %}
+                {% if contract.status == 'c' %}
+                    {% if is_boss_ %}
+                        <li class="nav-item">
+                            <a class="btn btn-success mt-1" href="{% url 'project:contractreturn' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">На доработку</a>
+                        </li>&nbsp;
+                    {% endif %}
+                {% endif %}
+                {% if is_boss_ %}
+                    {% if contract.status == 'd' and not contract.revoked %}
+                        <li class="nav-item">
+                            <a class="btn btn-primary mt-1" href="{% url 'project:contractopen' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">Открыть</a>
+                        </li>&nbsp;
+                    {% endif %}
+                    {% if contract.revoked %}
+                        <li class="nav-item">
+                            <a class="confirm-contract-restore btn btn-primary mt-1" href="{% url 'project:contractrestore' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">Отменить аннулирование</a>
+                        </li>&nbsp;
+                    {% endif %}
+                {% endif %}
+                {% if is_boss_ or is_accountant_ %}
+                    {% if not contract.revoked %}
+                        <li class="nav-item">
+                            <a class="btn btn-warning mt-1" href="{% url 'project:contractreceipt' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">Чек/Оригинал</a>
+                        </li>&nbsp;
+                    {% endif %}
+                {% else %}
+                    {% if contract.owner.id == request.user.id and contract.reservation_type != 'c' %}
+                        <li class="nav-item">
+                            <a class="btn btn-warning mt-1" href="{% url 'project:contractreceipt' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">Чек/Оригинал</a>
+                        </li>&nbsp;
+                    {% endif %}
+                {% endif %}
+                {% if contract.status == 'a' and contract.reservation_type == 'a' %}
+                        <li class="nav-item">
+                            <a class="btn btn-warning mt-1" href="{% url 'project:contractreservation' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">Запросить виртуальную бронь</a>
+                        </li>&nbsp;
+                {% endif %}
+                {% if contract.status == 'c' and not contract.revoked and is_boss_ %}
+                        <li class="nav-item">
+                            <a class="btn btn-danger mt-1" href="{% url 'project:contractrevoke' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">Аннулировать договор</a>
+                        </li>&nbsp;
+                {% endif %}
+                {% if contract.status == 'a' and contract.reservation_type == 'b' and is_boss_ %}
+                        <li class="nav-item">
+                            <a class="btn btn-warning mt-1" href="{% url 'project:contractreserveaccept' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">Подтвердить виртуальную бронь</a>
+                        </li>&nbsp;
+                {% endif %}
+                {% if contract.status == 'a' and contract.reservation_type == 'c' and is_boss_ %}
+                        <li class="nav-item">
+                            <a class="btn btn-warning mt-1" href="{% url 'project:contractreservetakeout' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">Снять виртуальную бронь</a>
+                        </li>&nbsp;
+                {% endif %}
+                {% if contract.status == 'a' and contract.reservation_type == 'b' and not is_boss_ %}
+                        <li class="nav-item">
+                            <a class="btn btn-warning mt-1" href="{% url 'project:contractunreservation' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">Отозвать запрос брони</a>
+                        </li>&nbsp;
+                {% endif %}
+                {% if contract.status == 'a' or contract.status == 'b' %}
+                    {% if is_boss_ or is_accountant_ or contract.reservation_type != 'c' %}
+                        <li class="nav-item">
+                            <a class="btn btn-warning mt-1" href="{% url 'project:turnoveradd' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">Добавить операцию</a>
+                        </li>
+                    {% endif %}
+                {% endif %}&nbsp;
+                    <li class="nav-item">
+                        <a class="btn btn-warning mt-1" href="{% url 'project:contractreport' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">&#x2399; Печать</a>
+                    </li>
+            </ul>
+
+        </nav>
+    </div>
+    </div>
+    <script type="text/javascript">
+        $(document).on('click', '.confirm-contract-close', function(){
+                return confirm('Вы действительно хотите отметить контракт выполненным?');
+            })
+    </script>
+    <script type="text/javascript">
+        $(document).on('click', '.confirm-contract-delete', function(){
+                return confirm('Вы действительно хотите удалить этот контракт?');
+            })
+    </script>
+    <script type="text/javascript">
+        $(document).on('click', '.confirm-contract-restore', function(){
+                return confirm('Вы действительно хотите восстановить этот контракт из аннулированных?');
+            })
+    </script>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'main/base.html' %}
+{# {% load static %} #}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+
+
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        {% if copy %}
+            <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px"><b>Копирование</b> записи в заявке #{{ bid.number }} по объекту {{ bid.object.name }}</h1>
+        {% else %}
+            <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Редактирование записи в заявке #{{ bid.number }} по объекту {{ bid.object.name }}</h1>
+        {% endif %}
+
+        {{ form.house.label_tag }}<br>
+        {{ form.house }}
+        {{ form.title.label_tag }}<br>
+        {{ form.title }}
+        {{ form.date.label_tag }}<br>
+        {{ form.date }}
+        {% if form.date.errors %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ form.date.errors }}</div>
+        {% endif %}
+        {{ form.type.label_tag }}<br>
+        {{ form.type }}
+        <div class="mb-2 mt-3 form-check form-switch" id="checker">
+            Оплата после доставки {{ form.prepaid }}
+        </div>
+        {{ form.cash.label_tag }}<br>
+        {{ form.cash }}
+        {{ form.quantity.label_tag }}<br>
+        {{ form.quantity }}
+        {% if form.quantity.errors %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ form.quantity.errors }}</div>
+        {% endif %}
+        {{ form.measure.label_tag }}<br>
+        {{ form.measure }}
+        {% if form.measure.errors %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ form.measure.errors }}</div>
+        {% endif %}
+        {{ form.price.label_tag }}<br>
+        {{ form.price }}
+        {% if form.price.errors %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ form.price.errors }}</div>
+        {% endif %}
+        {{ form.supplier.label_tag }} {% if content.supplier.hidden %}(скрытый) {{ content.supplier.name }}{% endif %}<br>
+        {{ form.supplier }}
+        {{ form.phase.label_tag }} {% if content.phase.hidden %}(скрытый) {{ content.phase.name }}{% endif %}<br>
+        {{ form.phase }}
+        {{ form.estimate.label_tag }} {% if content.estimate.hidden %}(скрытая) {{ content.estimate.name }}{% endif %}<br>
+        {{ form.estimate }}
+        {{ form.comment.label_tag }}<br>
+        {{ form.comment }}
+
+        {# {{ form.as_p }} #}
+        {{ form.media }}
+        {# {% bootstrap_form form layout="vertical" size="small" show_label=True %} #}
+        {% buttons %}
+            <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Сохранить</button>
+        {% endbuttons %}
+    </form>
+     <div class="d-flex justify-content-between" style="max-width: 330px; margin: auto; padding-left: 15px; padding-right: 15px;">
+            <a class="btn btn-sm btn btn-secondary" href="{% url 'project:onebid' bid.id %}?{{ rollback }}">{#{% bs_icon 'reply' size='1.5em' color='white' extra_classes='mb-1' %}#}&#x21b6; Вернуться</a>&nbsp;
+         {% if not copy %}
+            <a class="btn btn-sm btn btn-success" href="{% url 'project:contentscopy' content.id %}?{{ rollback }}">{#{% bs_icon 'back' size='1.5em' color='white' extra_classes='mb-1' %}#}&#x21ee; Копировать</a>&nbsp;
+            <a class="btn btn-sm btn btn-warning" href="{% url 'project:contentsdelete' content.id %}?{{ rollback }}">{#{% bs_icon 'trash' size='1.5em' color='black' extra_classes='mb-0' %}#}&#10811;  Удалить!</a>
+         {% endif %}
+    </div>
+<div class="modal fade" tabindex="-1" role="dialog" id="modal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content"></div>
+  </div>
+</div>
+ {#   <button id="create-book" class="btn btn-primary" type="button" name="button">Create book</button> #}
+    <script>
+        var id_type = document.getElementById("id_type");
+        var checker = document.getElementById("checker");
+        if (id_type.value != "a") {
+            $(checker).attr("hidden", "hidden")
+        } else {
+            checker.removeAttribute("hidden");
+        }
+
+        id_type.oninput = function() {
+            if (id_type.value != "a") {
+                $(checker).attr("hidden", "hidden")
+            } else {
+                checker.removeAttribute("hidden");
+            }
+        }
+    </script>
+{% endblock content %}

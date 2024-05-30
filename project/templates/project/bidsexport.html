@@ -1,0 +1,85 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load tags %}
+{% load filters %}
+{% load humanize %}
+
+{% block content %}
+    <form method="post" id="myForm" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Выгрузка данных в файл формата MS Excel</h1>
+
+        {# {% bootstrap_form form layout="vertical" size="small" show_label=True %} #}
+        <table>
+            <tr>
+                <td>
+                    {{ form.datefrom.label_tag }}<br>
+                    {{ form.datefrom }}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{ form.dateto.label_tag }}<br>
+                    {{ form.dateto }}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{ form.object.label_tag }}
+                    {{ form.object }}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {{ form.house.label_tag }}
+                    {{ form.house }}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="mb-2 mt-3 form-check form-switch">
+                        Включать бетон{{ form.concrete_included }}
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="d-flex justify-content-center">
+                        <div class="btn-group mt-3" data-toggle="buttons">
+                            {% for choice in form.like %}
+                                {% if forloop.counter == 0 %}
+                                    <label class="btn btn-secondary form-check-label active">
+                                    {{ choice }}
+                                    </label>
+                                {% else %}
+                                    <label class="btn btn-secondary form-check-label">
+                                    {{ choice }}
+                                    </label>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        {% buttons %}
+            <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Выполнить</button>
+        {% endbuttons %}
+        {% if error %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ error }}</div>
+        {% endif %}
+        <p class="alert fw-normal" style="margin-top: 10px; margin-bottom: 10px">Процедура выгрузки может быть достаточно продолжительной, поэтому после нажатия кнопки Выполнить дождитесь начала загрузки xls-файла</p>
+
+        {{ form.media }}
+
+    </form>
+    <script type="text/javascript">
+        $('#myForm').one('submit', function() {
+            $(this).find('button[type="submit"]').attr('disabled','disabled');
+        });
+    </script>
+{% endblock %}

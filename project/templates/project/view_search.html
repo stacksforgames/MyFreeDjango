@@ -1,0 +1,20 @@
+{% load bootstrap_icons %}
+<form method="post" action="">
+  {% csrf_token %}
+
+ <div class="modal-header">
+    <h5 class="modal-title">Поиск заявок по номеру</h5>
+  </div>
+   <div class="modal-body">
+        {{ form.number.label_tag }}<br>
+        {{ form.number }}
+        {% if form.number.errors %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ form.number.errors }}</div>
+        {% endif %}
+
+  </div>
+  <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">{% bs_icon 'reply' size='1.5em' color='white' extra_classes='mb-1' %} Возврат</button>
+                <button type="submit" class="btn btn-warning">{% bs_icon 'search' size='1.0em' color='white' extra_classes='mb-1' %} Искать</button>
+  </div>
+</form>

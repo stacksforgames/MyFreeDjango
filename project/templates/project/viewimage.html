@@ -1,0 +1,16 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+  	<div class="graph1 mb-3">
+       	<img src="data:image/png;base64, {{ imgbase }}" style="max-width:1440px;" alt="image" />
+   	</div>
+    <div  style="max-width: 25em; margin: auto">
+       <nav class="navbar navbar-light px-3">
+            <a class="btn btn-sm btn btn-secondary" href="{% url 'project:contractreceipt' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">&#x21b6; Вернуться</a>
+       </nav>
+    </div>
+{% endblock %}

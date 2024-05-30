@@ -1,0 +1,35 @@
+{% load bootstrap5 %}
+{% load bootstrap_icons %}
+{% load filters %}
+
+
+<div class="modal-header" xmlns="http://www.w3.org/1999/html">
+        <h5 class="modal-title">{{ title }} <span class="badge rounded-pill bg-warning">{{ house.name }}</span> объекта <span class="badge rounded-pill bg-warning">{{ object.name }}</span> за период с {{ date_from|date:"d/m/Y" }} по {{ date_to|date:"d/m/Y" }}</h5>
+    </div>
+    <div class="modal-body">
+        <table width="100%">
+            {% for item in delivery %}
+                <tr style="border-top: 1pt solid black; border-bottom: 1pt solid black">
+                    <td style="border-left: 1pt solid black; border-right: 1pt solid black">
+                        {{ item.date|date:"d.m.Y" }}
+                    </td>
+                    <td width="10%" style="border-right: 1pt solid black">
+                        <b>{{ item.volume|floatformat:2 }}</b>
+                    </td>
+                    <td width="20%" style="border-right: 1pt solid black">
+                        <b>{{ item.total_sum|floatformat:2 }}</b>
+                    </td>
+                    <td style="border-right: 1pt solid black">
+                        {{ item.title }} <i>[{{ item.supplier__name }}]</i> <b>{{ item.comment }}</b>
+                    </td>
+                </tr>
+
+            {% endfor %}
+        </table>
+            <div class="d-flex w-100 justify-content-end mt-3">
+                <b>Всего бетона: {{ summary_volume|floatformat:2 }}</b>&nbsp;м3&nbsp;&nbsp;&nbsp;&nbsp;
+            </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Возврат</button>
+    </div>

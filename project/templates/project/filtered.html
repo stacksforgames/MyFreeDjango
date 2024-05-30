@@ -1,0 +1,191 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load tags %}
+
+
+{% block content %}
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <div>
+                    <h1>Мои заявки</h1>
+                </div>
+{#                <div class="collapse navbar-collapse w-100 order-3 dual-collapse2" style="min-width: 300px"> #}
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+{#                            <a class="nav-link active" href="/bids/add">   #}
+{#                            <a class="btn btn-secondary active" href="{% url 'project:newbid'%}?page={{ page }}&f={{ object }}&q={{ number }}&s={{ summary }}&l={{ unlocked_only }}&u={{ undelivered_only }}"> #}
+                            <a class="btn btn-secondary active" href="{% url 'project:newbid'%}?page={{ page }}{{ rollback }}">
+                                {#{% bs_icon 'clipboard-plus' size='1.5em' color='white' extra_classes='mb-1' %}#}
+                                <span class="fs-7 fw-semibold float-right">&#10010; Добавить</span>
+                            </a>
+                        </li>
+
+
+                    </ul>
+ {#               </div> #}
+            </div>
+        </nav>
+    {% if mybids %}
+        <div class="list-group list-group-flush border-bottom scrollarea" style="overflow-y: auto;">
+
+        {% is_manager request as is_manager_ %}
+        {% for item in mybids %}
+          {#<div style="{% get_bid_special_color item %}">#}
+            <a href="{% url 'project:onebid' item.id %}?page={{ page }}{{ rollback }}" class="{% get_bid_color_type item %}" style="{% get_bid_special_color item %}">
+            <div class="d-flex w-100 align-items-center justify-content-between" {% if item.refunded %}style="background: repeating-linear-gradient(-45deg, transparent 0 15px, #efaaaa 20px 40px);"{% endif %}>
+                <strong class="mb-1">
+                    {% if item.highlighted %}&#10004;
+                    {% else %}&nbsp;&nbsp;&nbsp;
+                    {% endif %}
+                    {% if item.supervision %}&#10004;
+                    {% else %}&nbsp;&nbsp;&nbsp;
+                    {% endif %}
+                    {% if item.workcount > 0 %}&#x26cf;
+                    {% else %}
+                        {% if item.techcount > 0 %}&#x2699;
+                        {% else %}
+                            {% if item.materials > 0 %}
+                                {% if item.not_prepaid > 0 %}&#x1f501;
+                                {% else %}&#x1f4e5;
+                                {% endif %}
+                            {% else %}&nbsp;&nbsp;&nbsp;&nbsp;
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}<span class="badge rounded-pill bg-warning">{{ item.number }}</span><span class="badge rounded-pill bg-info">{{ item.object.name }}</span> {{ item.title }} <span class="badge rounded-pill bg-secondary">{{ item.summary|floatformat:2 }} р.</span></strong>
+                <small><span class="badge rounded-pill bg-success">{{ item.owner.first_name }} {{ item.owner.last_name }}</span> {{ item.date|date:"d/m/Y G:i" }}
+                    {% if item.locked %}
+                        &#128274;
+                    {% else %}
+                        &#128275;
+                    {% endif %}
+                </small>
+
+            </div>
+            </a>
+          {#</div>#}
+        {% endfor %}
+
+            <nav aria-label="...">
+                <ul class="pagination justify-content-center mt-3">
+                    {% if page_.has_previous %}
+                    <li class="page-item">
+                    {% else %}
+                    <li class="page-item disabled">
+                    {% endif %}
+                        <a class="page-link" href="/?page={{ page|add:-1 }}{{ rollback }}"><<</a>
+                    </li>
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{page_.number}} из {{pages.num_pages}}</span>
+                    </li>
+                    <li class="page-item" aria-current="page">
+                        <a class="page-link" href="#" id="go_page">&#10150;{{page_.number}}</a>
+                    </li>
+                    {% if page_.has_next %}
+                    <li class="page-item">
+                    {% else %}
+                    <li class="page-item disabled">
+                    {% endif %}
+                        <a class="page-link" href="/?page={{ page|add:1 }}{{ rollback }}">>></a>
+                    </li>
+                </ul>
+            </nav>
+            <input type="range" min="1" step="1" max="{{pages.num_pages}}" value="{{ page }}"  id="myRange">
+        </div>
+
+    {% else %}
+        <h3 class="mb-3 mt-3">Вы пока ещё не подавали заявок</h3>
+    {% endif %}
+            <form method="post" class="form" style="padding: 5px; display: inline">
+                {% csrf_token %}
+                <table>
+                    <tr>
+                        <td>
+                             {{ form.datefrom.label_tag }}
+                        </td>
+                        <td>
+                             {{ form.datefrom }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                             {{ form.dateto.label_tag }}
+                        </td>
+                        <td>
+                             {{ form.dateto }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                             {{ form.choice_filter.label_tag }}
+                        </td>
+                        <td>
+                             {{ form.choice_filter }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            {{ form.summary.label_tag }}
+                        </td>
+                        <td>
+                            {{ form.summary }}
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                             {{ form.author.label_tag }}
+                        </td>
+                        <td>
+                             {{ form.author }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            {{ form.filter_object.label_tag }}
+                        </td>
+                        <td>
+                            {{ form.filter_object }}
+                        </td>
+                        <td>
+                        {% buttons %}
+                            <button name="submit"  class="w-100 btn btn-primary" style="margin-top: 15px; padding: 5px; color: transparent; text-shadow: 0 0 0 white;">{#{% bs_icon 'funnel' size='1.5em' color='white' %}#}&nbsp;&#128269;&nbsp;</button>
+                        {% endbuttons %}
+                        </td>
+                    </tr>
+                </table>
+            </form>
+    <script>
+    var getUrlParameter = function getUrlParameter(sParam) {
+        var sPageURL = window.location.search.substring(1),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+            }
+        }
+        return false;
+        };
+        var slider = document.getElementById("myRange");
+        var output = document.getElementById("go_page");
+        var filter = getUrlParameter("f");
+        var summary = getUrlParameter("s");
+        var date_from = getUrlParameter("from");
+        var date_to = getUrlParameter("to");
+        var choice_filter = getUrlParameter("c");
+        output.innerHTML = "&#10150;" + slider.value;
+
+        slider.oninput = function() {
+            output.innerHTML = "&#10150;" + this.value;
+            $(output).attr("href", "/?page=" + this.value + "&f=" + filter + "&s=" + summary + "&c=" + choice_filter + "&from=" + date_from + "&to=" + date_to)
+        }
+</script>
+{% endblock %}

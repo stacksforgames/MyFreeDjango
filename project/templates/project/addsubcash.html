@@ -1,0 +1,35 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Добавление новой кассы</h1>
+
+        {{ form.name.label_tag }}<br>
+        {{ form.name }}
+        {{ form.cashregister.label_tag }}<br>
+        {{ form.cashregister }}
+        {{ form.balance.label_tag }}<br>
+        {{ form.balance }}
+        {{ form.date.label_tag }}<br>
+        {{ form.date }}
+        {% if form.date.errors %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ form.date.errors }}</div>
+        {% endif %}
+        {{ form.closedate.label_tag }}<br>
+        {{ form.closedate }}
+
+        {{ form.media }}
+        {% buttons %}
+            <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Сохранить</button>
+        {% endbuttons %}
+    </form>
+    <div class="d-flex justify-content-center">
+            <a class="btn btn-sm btn btn-secondary" href="{% url 'project:filteredsubcashes' %}?c={{ cashregister }}">&#x21b6; Вернуться</a>
+    </div>
+
+{% endblock content %}

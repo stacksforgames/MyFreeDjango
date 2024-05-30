@@ -1,0 +1,230 @@
+{% extends 'main/base.html' %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% load filters %}
+{% load tags %}
+
+{% block content %}
+        <nav class="navbar" {% if bid_.refunded %}style="background: repeating-linear-gradient(-45deg, transparent 0 15px, #efaaaa 20px 40px);"{% endif %}>
+            {% if bid_.locked %}
+                <a class="btn btn-success mt-1" href="#">
+                                    {#{% bs_icon 'pencil-square' size='1.5em' color='white' extra_classes='mb-1' %}#}
+                    <span class="fs-7 fw-semibold float-left">&#x1f4dd; Состав заявки №{{bid_.number}} ({{bid_.title}}) от {{bid_.date|date:"d.m.Y"}} по объекту {{bid_.object.name}}&nbsp;&nbsp;<span class="badge rounded-pill bg-dark">{{ bid_.owner.first_name }} {{ bid_.owner.last_name }}</span></span>
+                </a>
+            {% else %}
+                <a class="btn btn-success mt-1" href="{% url 'project:bidedit' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">
+                                    {#{% bs_icon 'pencil-square' size='1.5em' color='white' extra_classes='mb-1' %}#}
+                     <span class="fs-7 fw-semibold float-left">&#x1f4dd; Состав заявки №{{bid_.number}} ({{bid_.title}}) от {{bid_.date|date:"d.m.Y"}} по объекту {{bid_.object.name}}&nbsp;&nbsp;<span class="badge rounded-pill bg-dark">{{ bid_.owner.first_name }} {{ bid_.owner.last_name }}</span></span>
+                </a>
+            {% endif %}
+                    <ul class="nav nav-pills">
+                        {# <li class="nav-item"> #}
+                            {% if bid_.locked or bid_.highlighted %}
+                                {% if bid_.locked %}
+                                    <span class="mt-1">{#{% bs_icon 'lock-fill' size='1.5em' color='black' extra_classes='mb-1' %}#}&#x1f512; Заблокирована</span>
+                                {% endif %}
+                                {% if bid_.highlighted %}
+                                    <span class="mt-1">{#{% bs_icon 'lock-fill' size='1.5em' color='black' extra_classes='mb-1' %}#}&#10004; Подписана</span>
+                                {% endif %}
+                            {% else %}
+                                <a class="btn btn-secondary active mt-1" href="{% url 'project:contentsadd' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">
+                                    {#{% bs_icon 'clipboard-plus' size='1.5em' color='white' extra_classes='mb-1' %}#}
+                                    <span class="fs-7 fw-semibold float-right">&#10010; Добавить</span>
+                                </a>
+                            {% endif %}
+                    </ul>
+        </nav>
+
+    {% is_boss request as is_boss_ %}
+    {% is_manager request as is_manager_ %}
+    {% is_special request as is_special_ %}
+    {% is_accountant request as is_accountant_ %}
+    {% is_supervisor request as is_supervisor_ %}
+    {% is_work_bid bid_ as is_work_ %}
+    {% is_tech_bid bid_ as is_tech_ %}
+    {% is_materials_bid bid_ as is_materials_ %}
+    {% is_not_prepaid_bid bid_ as is_not_prepaid_ %}
+    {% if contents_ %}
+    <div class="list-group list-group-flush border-bottom scrollarea" style="overflow-y: auto;">
+        {% for item in contents_ %}
+
+        {% get_display_color_type item.type as back_color %}
+
+            {% if bid_.locked or bid_.highlighted %}
+                {% if not is_boss_ %}
+                    <a href="#" class="list-group-item list-group-item-action {{ back_color }} py-2 lh-tight">
+                {% else %}
+                    <a href="{% url 'project:contentsedit' item.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}" class="list-group-item list-group-item-action {{ back_color }} py-2 lh-tight">
+                {% endif %}
+            {% else %}
+                <a href="{% url 'project:contentsedit' item.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}" class="list-group-item list-group-item-action {{ back_color }} py-2 lh-tight">
+            {% endif %}
+
+            <div>
+            <div class="d-flex w-100 align-items-center justify-content-between">
+                <strong class="mb-1">{{item.house.name}}</strong>
+                <small>Стоимость: <b>{{item.price}}р.</b> ({{item.get_cash_display}}) {% if item.type != 'd' %}| Объём: {{item.quantity}} {{item.get_measure_display}} {% else %}| Количество: {{item.quantity}}{% endif %} Сумма: <b>{{ item.price | multiply:item.quantity|floatformat:2 }}р.</b>
+                </small>
+            </div>
+            <div class="d-flex w-100 align-items-center justify-content-between">
+                <strong class="mb-1">[{{ item.date|date:"d/m/Y" }}] {{item.title}}</strong>
+                <small>({{item.supplier.name}}) {{item.comment}}
+                                {# {% bs_icon 'clipboard-plus' size='1.5em' color='white' extra_classes='mb-1' %} #}
+                </small>
+            </div>
+            </div>
+            </a>
+        {% endfor %}
+            <div class="list-group-item list-group-item-action  list-group-item-success py-2 lh-tight">
+                <div class="d-flex w-100 align-items-center justify-content-between">
+                    <strong class="mb-1">Сумма, итого:</strong>
+                    <strong class="mb-1">{{sum.summary|floatformat:2}}р.</strong>
+                </div>
+            </div>
+    </div>
+    {% else %}
+        <h3>заявка пуста</h3>
+    {% endif %}
+    <div>
+        <nav class="navbar navbar-light bg-light px-3"> {# {% url 'project:found' %}?q={{ number }} #}
+            {% if number %}
+                <a class="btn btn-secondary" href="{% url 'project:found' %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">&#x21b6; Вернуться</a>
+            {% else %}
+                {% if extended %}
+                    <a class="btn btn-secondary" href="{% url 'project:phasereport' %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">&#x21b6; Вернуться</a>
+                {% else %}
+                    {% if selected_supplier %}
+                        <a class="btn btn-secondary" href="{% url 'project:supplierdetailreport' selected_supplier %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">&#x21b6; Вернуться</a>
+                    {% else %}
+                        <a class="btn btn-secondary" href="{% url 'project:bids' %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">&#x21b6; Вернуться</a>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+
+            <ul class="nav nav-pills">
+                <li class="nav-item">
+                    {% if is_accountant_ or is_boss_ %}
+                         {% if bid_.locked %}
+                            <a class="btn btn-secondary mt-1" href="{% url 'project:bidunlock' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">&#x1f513; Разблокировать
+                            </a>
+                         {% else %}
+                            {% if is_work_ or is_tech_ %}
+                                {% if bid_.highlighted and bid_.supervision %}
+                                    <a class="btn btn-secondary mt-1" href="{% url 'project:bidlock' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">{#{% bs_icon 'lock-fill' size='1.5em' color='white' extra_classes='mb-1' %}#}&#x1f512; Заблокировать
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                {% if is_materials_ %}
+                                    {% if is_not_prepaid_ %}
+                                        {% if bid_.supervision %}
+                                            <a class="btn btn-secondary mt-1" href="{% url 'project:bidlock' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">{#{% bs_icon 'lock-fill' size='1.5em' color='white' extra_classes='mb-1' %}#}&#x1f512; Заблокировать
+                                            </a>
+                                        {% endif %}
+                                    {% else %}
+                                            <a class="btn btn-secondary mt-1" href="{% url 'project:bidlock' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">{#{% bs_icon 'lock-fill' size='1.5em' color='white' extra_classes='mb-1' %}#}&#x1f512; Заблокировать
+                                            </a>
+                                    {% endif %}
+                                {% else %}
+                                    <a class="btn btn-secondary mt-1" href="{% url 'project:bidlock' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">{#{% bs_icon 'lock-fill' size='1.5em' color='white' extra_classes='mb-1' %}#}&#x1f512; Заблокировать
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                         {% endif %}
+                    {% endif %}
+                    {% if bid_.highlighted %}
+                        {% if is_boss_ and not bid_.locked %}
+                             <a class="btn btn-secondary mt-1" href="{% url 'project:bidunmark' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">{#{% bs_icon 'bookmark-x' size='1.5em' color='white' extra_classes='mb-1' %}#}&#10008; Снять подписи
+                             </a>
+                        {% endif %}
+                    {% else %}
+                        {% if user == bid_.owner %}
+                            {% if is_work_ or is_tech_ %}
+                                <a class="btn btn-secondary mt-1" href="{% url 'project:bidmark' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">{#{% bs_icon 'bookmark-star' size='1.5em' color='white' extra_classes='mb-1' %}#}&#10004; Подписать
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+
+                    {% if bid_.highlighted and is_supervisor_ and not bid_.supervision and is_work_ %}
+                            <a class="btn btn-secondary mt-1" href="{% url 'project:bidsign' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">{#{% bs_icon 'bookmark-star' size='1.5em' color='white' extra_classes='mb-1' %}#}&#10004; Подпись технадзор
+                            </a>
+                    {% endif %}
+
+                    {% if not bid_.locked and not bid_.highlighted and not bid_.supervision %}
+                        {% if user == bid_.owner %}
+                            <a class="confirm-bid-delete btn btn-danger mt-1" href="{% url 'project:biddel' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">{#{% bs_icon 'trash' size='1.5em' color='white' extra_classes='mb-1' %}#}&#10811; Удалить заявку
+                            </a>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if is_materials_ %}
+                        {% if is_not_prepaid_ %} {# сначала доставка #}
+                            {% if not bid_.locked and not bid_.supervision %}
+                                {% if user == bid_.owner or is_boss_ or is_manager_ %}
+                                    <a class="confirm-bid-confirm-delivery btn btn-success mt-1" style="color: transparent; text-shadow: 0 0 0 white;" href="{% url 'project:biddelivery' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">&#x1f4e5; Подтвердить доставку
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                        {% else %}
+                            {% if bid_.locked and not bid_.supervision %}
+                                {% if user == bid_.owner or is_boss_ or is_manager_ %}
+                                    <a class="confirm-bid-confirm-delivery btn btn-success mt-1" style="color: transparent; text-shadow: 0 0 0 white;" href="{% url 'project:biddelivery' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">&#x1f4e5; Подтвердить доставку
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+
+                    {% if is_special_ %}
+                        {% if bid_.locked %}
+                            {% if bid_.refunded %}
+                                <a class="confirm-bid-cancel-refund btn btn-secondary mt-1" href="{% url 'project:bidcancelrefund' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">&#8634; Отмена возврата
+                                </a>
+                            {% else %}
+                                <a class="confirm-bid-refund btn btn-secondary mt-1" href="{% url 'project:bidrefund' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">&#8635; Оформить возврат
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                        {% if bid_.hidden %}
+                            <a class="btn btn-secondary mt-1" href="{% url 'project:bidunhide' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">&#9745; Показать
+                            </a>
+                        {% else %}
+                            <a class="btn btn-secondary mt-1" href="{% url 'project:bidhide' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">&#9746; Скрыть
+                            </a>
+                        {% endif %}
+                    {% endif %}
+
+
+                    <a class="btn btn-warning mt-1" href="{% url 'project:bidreport' bid_.id %}{% get_rollback_link number extended rollback page object sum_filter unlocked_only undelivered_only selected_supplier %}">{#{% bs_icon 'printer' size='1.5em' color='white' extra_classes='mb-1' %}#}&#x2399; Форма для печати</a>
+
+
+                </li>
+            </ul>
+
+        </nav>
+    </div>
+
+    <script type="text/javascript">
+        $(document).on('click', '.confirm-bid-delete', function(){
+                return confirm('Вы действительно хотите это удалить?');
+            })
+    </script>
+    <script type="text/javascript">
+        $(document).on('click', '.confirm-bid-confirm-delivery', function(){
+                return confirm('Вы действительно хотите подтвердить доставку?');
+            })
+    </script>
+    <script type="text/javascript">
+        $(document).on('click', '.confirm-bid-cancel-refund', function(){
+                return confirm('Вы действительно хотите отменить возврат по данной заявке?');
+            })
+    </script>
+    <script type="text/javascript">
+        $(document).on('click', '.confirm-bid-refund', function(){
+                return confirm('Вы действительно хотите оформить возврат по данной заявке?');
+            })
+    </script>
+
+{% endblock %}

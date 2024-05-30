@@ -1,0 +1,76 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% block mycss %} <style> .readonlyfield {border: 1px solid #ced4da; border-radius: .25rem; padding: .375rem 2.25rem .375rem .75rem; background-color: #FAFAFA} </style> {% endblock %}
+
+
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Смена типа договора</h1>
+
+        {% if error %}
+            {% for item in error %}
+                <div class="alert alert-danger fade show mt-0" role="alert">{{ item }}</div>
+            {% endfor %}
+        {% endif %}
+
+        Тип договора до изменения:<br>
+            <div class="readonlyfield">
+                {{ contract.get_type_display }}
+            </div>
+        Номер договора:<br>
+            <div class="readonlyfield">
+                {{ contract.number }}
+            </div>
+
+        {{ form.type.label_tag }}<br>
+        {{ form.type }}
+        {{ form.number.label_tag }}<br>
+        {{ form.number }}
+
+        <input type="hidden" id="contract_a" value="{{ max_contract_a }}">
+        <input type="hidden" id="contract_b" value="{{ max_contract_b }}">
+        <input type="hidden" id="contract_c" value="{{ max_contract_c }}">
+
+        {{ form.media }}
+
+        {% buttons %}
+            <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Сохранить изменения</button>
+        {% endbuttons %}
+    </form>
+    <div  style="max-width: 25em; margin: auto">
+       <nav class="navbar navbar-light px-3">
+            <a class="btn btn-sm btn btn-secondary" href="{% url 'project:onecontract' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">&#x21b6; Вернуться</a>
+    </div>
+    <script>
+        var id_type = document.getElementById("id_type");
+        var id_number = document.getElementById("id_number");
+        var contract_a = document.getElementById("contract_a");
+        var contract_b = document.getElementById("contract_b");
+        var contract_c = document.getElementById("contract_c");
+            if (id_type.value == "a") {
+                id_number.innerHTML = contract_a.value;
+            } else {
+                if (id_type.value == "b") {
+                    id_number.innerHTML = contract_b.value;
+                } else {
+                    id_number.innerHTML = contract_c.value;
+                    }
+              }
+
+        id_type.oninput = function() {
+            if (id_type.value == "a") {
+                id_number.innerHTML = contract_a.value;
+            } else {
+                if (id_type.value == "b") {
+                    id_number.innerHTML = contract_b.value;
+                } else {
+                    id_number.innerHTML = contract_c.value;
+                    }
+              }
+        }
+    </script>
+{% endblock %}

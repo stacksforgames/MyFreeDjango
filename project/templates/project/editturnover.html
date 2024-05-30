@@ -1,0 +1,44 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Корректировка операции по контракту</h1>
+
+        {% if error %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ error }}</div>
+        {% endif %}
+
+        {{ form.date.label_tag }}<br>
+        {{ form.date }}
+        {{ form.type.label_tag }}<br>
+        {{ form.type }}
+        {{ form.amount.label_tag }}<br>
+        {{ form.amount }}
+
+        {{ form.comment.label_tag }}<br>
+        {{ form.comment }}
+
+        {{ form.media }}
+
+        {% buttons %}
+            <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Сохранить</button>
+        {% endbuttons %}
+    </form>
+    <div class="d-flex justify-content-center">
+            <a class="btn btn-secondary" href="{% url 'project:onecontract' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">&#x21b6; Вернуться</a>&nbsp;&nbsp;
+        {% if turnover.performed == False %}
+            <a class="confirm-turnover-delete btn btn btn-danger" href="{% url 'project:turnoverdelete' turnover.id %}{% if rollback %}?{{ rollback }}{% endif %}">&#10811;&nbsp;&nbsp;&nbsp;Удалить</a>
+        {% endif %}
+    </div>
+    <script type="text/javascript">
+        $(document).on('click', '.confirm-turnover-delete', function(){
+                return confirm('Вы действительно хотите это удалить?');
+            })
+    </script>
+{% endblock %}

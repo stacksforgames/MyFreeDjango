@@ -1,0 +1,92 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+                 <div>
+                    <h1>Перечень касс</h1>
+                </div>
+       <div class="btn-toolbar" role="toolbar" aria-label="...">
+            <div class="btn-group mr-2" role="group" aria-label="First group">
+                {% if cashregister > 0 %}
+                <a class="btn btn-secondary active" href="{% url 'project:newsubcash'%}?c={{ cashregister }}"><span class="fs-7 fw-semibold float-right">&#10010; Добавить</span></a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>
+
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        {{ form.cashregister.label_tag }}<br>
+        {{ form.cashregister }}
+
+       {% buttons %}
+              <table class="w-50">
+                  <tr>
+                      <td style="width: 75%">
+                  <button name="submit"  class="w-100 btn btn-primary" style="margin-top: 15px; padding: 5px; width: 150px">Фильтр</button>
+                          </td>
+                  </tr>
+              </table>
+       {% endbuttons %}
+        {% if error %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ error }}</div>
+        {% endif %}
+    </form>
+
+    {% if subcash %}
+    <div class="accordion" id="accordionPanelsStayOpen" style="max-width: 50em; margin: auto">
+        {% for item in subcash %}
+        <div class="accordion-item" style="background-color: #F1F1F1">
+                    <h3 class="accordion-header" id="panelsStayOpen-heading-{{ item.id }}">
+                       <a name="item{{ item.id }}"></a>
+                       {% if item.id == selected %}
+                            <button class="accordion-button"  style="background-color: {% if item.hidden %}#C9C1C6{% else %}#FBFBFB{% endif %}; padding: 4px" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse-{{ item.id }}" aria-expanded="false" aria-controls="panelsStayOpen-collapse-{{ item.id }}">
+                        {% else %}
+                            <button class="accordion-button collapsed"  style="background-color: {% if item.hidden %}#C9C1C6{% else %}#FBFBFB{% endif %}; padding: 4px" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse-{{ item.id }}" aria-expanded="false" aria-controls="panelsStayOpen-collapse-{{ item.id }}">
+                        {% endif %}
+                            <table width="100%">
+                                <tr>
+                                    {% if item.hidden %}
+                                        <td style="width:30%; border-right: 1px dotted gray; padding-left: 5px"><span>{{ item.name }}</span></td>
+                                    {% else %}
+                                        <td style="width:30%; border-right: 1px dotted gray; padding-left: 5px"><span>{{ item.name }}</span></td>
+                                    {% endif %}
+                                        <td style="width:50%; border-right: 1px dotted gray; padding-left: 5px">Остаток: <b>{{ item.balance }}</b> на {{ item.date|date:"d/m/Y" }}</td>
+                                    {% if item.closedate %}
+                                        <td style="border-right: 1px dotted gray; padding-left: 5px"><b>Закрыта: {{ item.closedate|date:"d/m/Y" }}</b></td>
+                                    {% else %}
+                                        <td style="border-right: 1px dotted gray; padding-left: 5px">-</td>
+                                    {% endif %}
+                                </tr>
+                            </table>
+                        </button>
+                    </h3>
+                      {% if item.id == selected %}
+                        <div id="panelsStayOpen-collapse-{{ item.id }}" class="accordion-collapse collapse show" aria-labelledby="panelsStayOpen-heading-{{ item.id }}">
+                      {% else %}
+                        <div id="panelsStayOpen-collapse-{{ item.id }}" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-heading-{{ item.id }}">
+                      {% endif %}
+                        <div class="accordion-body">
+                            <a name="item{{ item.id }}"></a>
+                            <div class="accordion" id="accordionPanelsStayOpen-{{ item.id }}" style="max-width: 25em; margin: auto">
+                                <a class="btn btn-secondary active" href="{% url 'project:subcashedit' item.id %}?c={{ cashregister }}"><span class="fs-7 fw-semibold float-right">Корректировать</span></a>
+                                {# <button id="open-house-phase-details2" class="edit-phase-details btn btn-warning py-0" data-toggle="modal" data-target="#myModal" data-form-url="{% url 'project:subcashedit' item.id %}?c={{ cashregister }}">↵ Корректировать</button> #}
+                                {# <a class="confirm-phase-delete btn btn-danger py-0" href="{% url 'project:phasedelete' item.id %}?f={{ filter_str }}">✖ Удалить</a> #}
+                            </div>
+                        </div>
+            </div>
+        </div>
+
+        {% endfor %}
+    </div>
+    {% else %}
+        <div class="alert alert-warning">Ничего не найдено по вашему запросу</div>
+    {% endif %}
+
+{% endblock %}

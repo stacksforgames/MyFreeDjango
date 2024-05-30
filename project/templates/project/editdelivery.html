@@ -1,0 +1,84 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load bootstrap_icons %}
+{% load tags %}
+
+
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Редактирование отгрузки</h1>
+
+        {% if error %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ error }}</div>
+        {% endif %}
+
+        {{ form.date.label_tag }}<br>
+        {{ form.date }}
+        {{ form.supplier.label_tag }}<br>
+        {{ form.supplier }}
+
+        {{ form.object.label_tag }}<br>
+        {{ form.object }}
+        {{ form.house.label_tag }}<br>
+        {{ form.house }}
+
+        {{ form.volume.label_tag }}<br>
+        {{ form.volume }}
+        {{ form.price.label_tag }}<br>
+        {{ form.price }}
+
+        {{ form.pumpsummary.label_tag }}<br>
+        {{ form.pumpsummary }}
+
+        {{ form.pumptransfer.label_tag }}<br>
+        {{ form.pumptransfer }}
+        {{ form.downtime.label_tag }}<br>
+        {{ form.downtime }}
+        {{ form.downtimecost.label_tag }}<br>
+        {{ form.downtimecost }}
+
+        {{ form.pumpcomment.label_tag }}<br>
+        {{ form.pumpcomment }}
+
+        {{ form.deliveryvolume.label_tag }}<br>
+        {{ form.deliveryvolume }}
+        {{ form.deliveryprice.label_tag }}<br>
+        {{ form.deliveryprice }}
+
+        {{ form.pile.label_tag }}<br>
+        {{ form.pile }}
+        {{ form.concrete_grade.label_tag }}<br>
+        {{ form.concrete_grade }}
+        {{ form.comment.label_tag }}<br>
+        {{ form.comment }}
+
+        {% is_accountant request as is_accountant_ %}
+        {% if is_accountant_ %}
+            <div class="mb-2 mt-3 form-check form-switch">
+                Сверено{{ form.verified }}
+            </div>
+        {% endif %}
+
+        {{ form.media }}
+
+        {% buttons %}
+            <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Сохранить</button>
+        {% endbuttons %}
+    </form>
+    {#<div class="d-flex justify-content-center">#}
+    <div class="d-flex justify-content-between" style="max-width: 330px; margin: auto; padding-left: 15px; padding-right: 15px;">
+            <a class="btn btn-sm btn btn-secondary" href="{% url 'project:filteredconcretedelivery' %}?page={{ page }}&from={{ datefrom }}&to={{ dateto }}&s={{ filter_supplier }}&o={{ filtered_object }}&h={{ filtered_house }}&a={{ prepay_only }}">{% bs_icon 'reply' size='1.5em' color='white' extra_classes='mb-1' %} Вернуться</a>
+            <a class="confirm-delete btn btn-sm btn btn-warning" href="{% url 'project:concretedeliverydelete' delivery.id %}?page={{ page }}&from={{ datefrom }}&to={{ dateto }}&s={{ filter_supplier }}&o={{ filtered_object }}&h={{ filtered_house }}&a={{ prepay_only }}">{% bs_icon 'trash' size='1.5em' color='black' extra_classes='mb-0' %}  Удалить!</a>
+    </div>
+
+    <script type="text/javascript">
+        $(document).on('click', '.confirm-delete', function(){
+                return confirm('Вы действительно хотите это удалить?');
+            })
+    </script>
+
+{% endblock %}

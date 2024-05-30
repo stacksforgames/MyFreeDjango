@@ -1,0 +1,105 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load tags %}
+{% load filters %}
+{% load humanize %}
+
+{% block content %}
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+             <div class="container">
+                 <div class="bg-light">
+                     <h3>Детализация оборотов по поставщику <span class="badge bg-success">{{ supplier }}</span> за период с {{ date_from|date:"d/m/Y" }} по {{ date_to|date:"d/m/Y" }}</h3>
+                 </div>
+             </div>
+    </nav>
+
+
+    <form method="post" class="form" style="max-width: 45em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+    </form>
+
+        <div>
+            <table class="table table-striped table-sm table-bordered" width="100%">
+                 <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Дата</th>
+                        <th scope="col">Объект/дом</th>
+                        <th scope="col">Поступление/<span style="color:red">аванс</span></th>
+                        <th scope="col">Номер</th>
+                        <th scope="col">Описание</th>
+                    </tr>
+                 </thead>
+                 <tbody>
+                {% for item in details %}
+                <tr>
+                    <td style="width:60px">
+                        {{ item.date|date:"d/m/Y" }}
+                    </td>
+                    <td style="width:20%">
+                        {{ item.objectname }}/{{ item.housename }}
+                    </td>
+                    <td style="width:10%">
+                        {% if item.summary >= 0 %}
+                            {{ item.summary|floatformat:2|intcomma }}
+                        {% else %}
+                        <span style="color:red">{{ item.summary|floatformat:2|intcomma }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="width:10%">
+                        {% if item.tag == 'a' %}
+                            a{{ item.number }}
+                        {% else %}
+                            {% if item.tag == '-' %}
+                                {{ item.number }}
+                            {% else %}
+                            <a class="btn btn-sm btn-secondary" href="{% url 'project:onebid' item.id %}?from={{ date_from|date:"Y-m-d" }}&to={{ date_to|date:"Y-m-d" }}&s={{ filtered }}{% if id %}&supplier={{ id }}{% endif %}">{{ item.number }}</a>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    <td style="">
+                        {{ item.comment }}/{{ item.title }}
+                    </td>
+                </tr>
+                {% endfor %}
+                 </tbody>
+            </table>
+               <div>
+                    <nav class="navbar navbar-light bg-light navbar-expand-lg px-3">
+                        <a class="btn btn-sm btn-secondary" href="{% url 'project:supplierreport' %}?from={{ date_from|date:"Y-m-d" }}&to={{ date_to|date:"Y-m-d" }}&s={{ filtered }}">&#x21b6; Вернуться</a>&nbsp;
+                        <a class="btn btn-sm btn-warning" href="{% url 'project:supplierdetailxlsreport' id %}?from={{ date_from|date:"Y-m-d" }}&to={{ date_to|date:"Y-m-d" }}">&#x2399; Форма для печати</a>&nbsp;
+             {% is_accountant request as is_accountant_ %}
+             {% is_boss request as is_boss_ %}
+             {% if is_accountant_ or is_boss_ %}
+                        <button id="remove-details" class="remove-supplier-details btn btn-danger py-0" data-toggle="modal" data-target="#modal" data-form-url="{% url 'project:supplierremovemodal' id %}?f={{ filter_str }}">♺ Объединить поставщиков</button>
+             {% endif %}
+                    </nav>
+               </div>
+        </div>
+
+   <div id="modal" class="modal hide fade" role="dialog" data-focus=false>
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content"></div>
+        </div>
+    </div>
+
+
+
+<script type="text/javascript">
+$(function() {
+    $.fn.modal.Constructor.prototype._enforceFocus = function() {};
+
+    function EditDetailDataForm() {
+        $(".remove-supplier-details").each(function () {
+            $(this).modalForm({
+                formURL: $(this).data("form-url")
+            });
+        });
+    }
+    EditDetailDataForm();
+});
+</script>
+
+{% endblock %}

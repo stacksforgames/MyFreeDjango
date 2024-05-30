@@ -1,0 +1,40 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% block mycss %} <style> .readonlyfield {border: 1px solid #ced4da; border-radius: .25rem; padding: .375rem 2.25rem .375rem .75rem; background-color: #FAFAFA} </style> {% endblock %}
+
+
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Корректировка операции по контракту</h1>
+
+        {% if error %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ error }}</div>
+        {% endif %}
+
+        <div class="readonlyfield">
+            <b>Контракт:</b> от {{ contract.date|date:"d/m/Y" }} {{ contract.get_type_display }}-{{ contract.number }} {{ contract.object.name }}/{{ contract.house.name }}/{{ contract.apartment }}
+        </div>
+        <div class="readonlyfield">
+            <b>Дата операции:</b> {{ turnover.date|date:"d/m/Y" }}
+        </div>
+        <div class="readonlyfield">
+            <b>{{ turnover.get_type_display }}</b> на сумму {{ turnover.amount }}
+        </div>
+
+        {{ form.comment.label_tag }}<br>
+        {{ form.comment }}
+
+        {{ form.media }}
+
+        {% buttons %}
+            <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Сохранить</button>
+        {% endbuttons %}
+    </form>
+    <div class="d-flex justify-content-center">
+            <a class="btn btn-secondary" href="{% url 'project:onecontract' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">&#x21b6; Вернуться</a>&nbsp;&nbsp;
+    </div>
+{% endblock %}

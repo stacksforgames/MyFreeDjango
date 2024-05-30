@@ -1,0 +1,81 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% block mycss %} <style> .readonlyfield {border: 1px solid #ced4da; border-radius: .25rem; padding: .5rem .5rem .5rem .5rem; background-color: #FAFAFA} </style> {% endblock %}
+
+{% load filters %}
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Изменение деталей контракта</h1>
+
+        {% if error %}
+            {% for item in error %}
+                <div class="alert alert-danger fade show mt-0" role="alert">{{ item }}</div>
+            {% endfor %}
+        {% endif %}
+
+        Номер договора:<br>
+            <div class="readonlyfield">
+                {{ contract.number }}
+            </div>
+
+        <div class="mb-2 mt-3 form-check form-switch" id="receipt">
+            Чек отбит {{ form.receipt }}
+        </div>
+        <div class="mb-2 mt-3 form-check form-switch" id="onhand">
+            Оригинал в наличии {{ form.onhand }}
+        </div>
+
+        {{ form.media }}
+
+        {% if True %}
+        <div class="readonlyfield">
+        {% if checks %}
+            Перечень приложенных изображений:
+        <table style="width: 100%; margin: auto">
+        {% for image in checks %}
+            <tr class="readonlyfield">
+                <td>
+                    <span class="badge rounded-pill bg-warning">{{ forloop.counter}}</span>
+                </td>
+                <td>
+                    <a href="{% url 'project:viewimage' contract.id image.id%}{% if rollback %}?{{ rollback }}{% endif %}">
+                    {{ image.date|date:"d.m.Y" }}&nbsp;({{ image.comment }})<br>
+                    </a>
+                </td>
+                <td>
+                  <a class="confirm-image-delete" href="{% url 'project:deleteimage' contract.id image.id%}{% if rollback %}?{{ rollback }}{% endif %}">
+                      <button type="button" class="w-100 btn btn-secondary" style="margin-top: 3px; padding: 3px">&nbsp;x&nbsp;</button>
+                  </a>
+                </td>
+            </tr>
+
+        {% endfor %}
+        </table>
+        {% endif %}
+                  <a href="{% url 'project:addcheckimage' contract.id%}{% if rollback %}?{{ rollback }}{% endif %}">
+                      <button type="button" class="w-100 btn btn-secondary" style="margin-top: 3px; padding: 3px">&nbsp;Добавить изображение&nbsp;</button>
+                  </a>
+        </div>
+        {% endif %}
+
+        {% buttons %}
+            <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Сохранить изменения</button>
+        {% endbuttons %}
+    </form>
+    <div  style="max-width: 25em; margin: auto">
+       <nav class="navbar navbar-light px-3">
+            <a class="btn btn-sm btn btn-secondary" href="{% url 'project:onecontract' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">&#x21b6; Вернуться</a>
+       </nav>
+    </div>
+
+    <script type="text/javascript">
+        $(document).on('click', '.confirm-image-delete', function(){
+                return confirm('Вы действительно хотите удалить это изображение?');
+            })
+    </script>
+
+{% endblock %}

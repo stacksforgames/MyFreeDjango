@@ -1,0 +1,23 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load bootstrap_icons %}
+{% load tags %}
+{% load filters %}
+
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Выбор дома</h1>
+
+        {{ form.object_.label_tag }}<br>
+        {{ form.object_ }}<br>
+        {{ form.object.label_tag }}<br>
+        {{ form.object }}<br>
+
+        {{ form.media }}
+
+    </form>
+{% endblock %}

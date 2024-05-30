@@ -1,0 +1,64 @@
+{% extends 'main/base.html' %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load bootstrap_icons %}
+
+{% block content %}
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <div>
+                    <h1>Мои заявки</h1>
+                </div>
+{#                <div class="collapse navbar-collapse w-100 order-3 dual-collapse2" style="min-width: 300px"> #}
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+{#                            <a class="nav-link active" href="/requests/add">   #}
+                            <a class="btn btn-secondary active" href="/requests/add">
+                                {% bs_icon 'clipboard-plus' size='1.5em' color='white' extra_classes='mb-1' %}
+                                <span class="fs-7 fw-semibold float-right">Добавить</span>
+                            </a>
+                        </li>
+
+
+                    </ul>
+ {#               </div> #}
+            </div>
+        </nav>
+    {% if myrequests %}
+        <div class="list-group list-group-flush border-bottom scrollarea" style="overflow-y: auto;">
+        {% for item in myrequests %}
+        <a href="{% url 'project:onerequest' item.id %}" class="list-group-item list-group-item-action py-2 lh-tight">
+            <div class="d-flex w-100 align-items-center justify-content-between">
+                <strong class="mb-1">[{{ item.id }}]{{ item.title }}</strong>
+                <small>{{ item.date }}</small>
+            </div>
+        </a>
+        {% endfor %}
+            <nav aria-label="...">
+                <ul class="pagination justify-content-center mt-3">
+                    {% if page_.has_previous %}
+                    <li class="page-item">
+                    {% else %}
+                    <li class="page-item disabled">
+                    {% endif %}
+                        <a class="page-link" href="/requests/?page={{ page|add:-1 }}">Предыдущая</a>
+                    </li>
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{page_.number}} из {{pages.num_pages}}</span>
+                    </li>
+                    {% if page_.has_next %}
+                    <li class="page-item">
+                    {% else %}
+                    <li class="page-item disabled">
+                    {% endif %}
+                        <a class="page-link" href="/requests/?page={{ page|add:1 }}">Следующая</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+    {% else %}
+        <h3 class="mb-3 mt-3">Вы пока ещё не подавали заявок</h3>
+    {% endif %}
+{% endblock %}

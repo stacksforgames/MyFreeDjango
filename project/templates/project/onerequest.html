@@ -1,0 +1,40 @@
+{% extends 'main/base.html' %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load bootstrap_icons %}
+
+{% block content %}
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <div>
+                    <h1>Состав заявки №{{request_.id}}</h1>
+                </div>
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="btn btn-secondary active" href="{% url 'project:detailsadd' request_.id %}">
+                                {% bs_icon 'clipboard-plus' size='1.5em' color='white' extra_classes='mb-1' %}
+                                <span class="fs-7 fw-semibold float-right">Добавить</span>
+                            </a>
+                        </li>
+
+
+                    </ul>
+            </div>
+        </nav>
+
+    {% if details_ %}
+    <div class="list-group list-group-flush border-bottom scrollarea" style="overflow-y: auto;">
+        {% for item in details_ %}
+        <a href="#" class="list-group-item list-group-item-action py-2 lh-tight">
+            <div class="d-flex w-100 align-items-center justify-content-between">
+                <strong class="mb-1">{{item.goods.name}}</strong>
+                <small>{{item.quantity}} {{item.goods.get_measure_display}}</small>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+        <h3>заявка пуста</h3>
+    {% endif %}
+{% endblock %}

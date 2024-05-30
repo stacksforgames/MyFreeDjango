@@ -1,0 +1,42 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load bootstrap_icons %}
+
+
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h2 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Добавление записи в заказ <b>{{ orderdetail.order.id }}</b></h2>
+
+        {{ form.code.label_tag }}<br>
+        {{ form.code }}
+        {{ form.title.label_tag }}<br>
+        {{ form.title }}
+        {{ form.quantity.label_tag }}<br>
+        {{ form.quantity }}
+        {% if form.quantity.errors %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ form.quantity.errors }}</div>
+        {% endif %}
+        {{ form.measure.label_tag }}<br>
+        {{ form.measure }}
+        {{ form.price.label_tag }}<br>
+        {{ form.price }}
+
+        {{ form.media }}
+        {% buttons %}
+            <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Сохранить</button>
+        {% endbuttons %}
+    </form>
+     <div class="d-flex justify-content-between" style="max-width: 330px; margin: auto; padding-left: 15px; padding-right: 15px;">
+            <a class="btn btn-sm btn btn-secondary" href="{% url 'project:orderreceiving' order.id %}?page={{ page }}&f={{ status }}">{% bs_icon 'reply' size='1.5em' color='white' extra_classes='mb-1' %} Вернуться</a>&nbsp;
+    </div>
+    <script type="text/javascript">
+        $(document).on('click', '.confirm-delete', function(){
+                return confirm('Вы действительно хотите это удалить?');
+            })
+    </script>
+{% endblock content %}

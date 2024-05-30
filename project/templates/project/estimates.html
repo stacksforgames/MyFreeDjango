@@ -1,0 +1,133 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load bootstrap_icons %}
+
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+                 <div>
+                    <h1>Перечень смет</h1>
+                </div>
+       <div class="btn-toolbar" role="toolbar" aria-label="...">
+            <div class="btn-group mr-2" role="group" aria-label="First group">
+{#                <a href="{% url 'project:objectsaddmodal' %}"> #}
+{#                    <button type="button" class="btn btn-secondary">{% bs_icon 'plus-square' size='1.2em' color='white' extra_classes='mb-1' %} #}
+{#                                <span class="fs-7 fw-semibold float-right">&nbsp;&nbsp;Добавить поставщика</span></button> #}
+{#                    </a>&nbsp;#}
+                <button id="open-object-details" class="object-add btn btn-secondary btn-lg py-2" data-toggle="modal" data-target="#myModal" data-form-url="{% url 'project:estimateaddmodal' %}">{% bs_icon 'plus-square' size='1.2em' color='white' extra_classes='mb-1' %}&nbsp;Добавить смету</button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h3 class="fw-bold mb-0 fs-4" style="margin-top: 10px; margin-bottom: 10px">Фильтр смет по названию</h3>
+        <p style="margin-top: 10px; margin-bottom: 10px">(большие и маленькие буквы различаются)</p>
+
+        {# {% bootstrap_form form layout="vertical" size="small" show_label=True %} #}
+
+        {{ form.filter_str.label_tag }}<br>
+        {{ form.filter_str }}
+
+       {% buttons %}
+              <table class="w-100">
+                  <tr>
+                      <td style="width: 75%">
+                  <button name="submit"  class="w-100 btn btn-primary" style="margin-top: 15px; padding: 5px; width: 150px">{% bs_icon 'funnel-fill' size='1.5em' color='white' %}</button>
+                          </td>
+                      <td style="width: 25%">
+                  <a href="{% url 'project:estimates'%}">
+                      <button type="button" class="w-100 btn btn-secondary" style="margin-top: 15px; padding: 5px">{% bs_icon 'funnel' size='1.5em' color='white' %}{% bs_icon 'x-lg' size='1.5em' color='white' %}</button>
+                  </a>
+                      </td>
+                  </tr>
+              </table>
+       {% endbuttons %}
+        {% if error %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ error }}</div>
+        {% endif %}
+    </form>
+
+    {% if estimates %}
+    <div class="accordion" id="accordionPanelsStayOpen" style="max-width: 25em; margin: auto">
+        {% for item in estimates %}
+        <div class="accordion-item" style="background-color: #F1F1F1">
+                    <h3 class="accordion-header" id="panelsStayOpen-heading-{{ item.id }}">
+                       <a name="item{{ item.id }}"></a>
+                       {% if item.id == selected %}
+                            <button class="accordion-button"  style="background-color: #F9F1E6; padding: 4px" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse-{{ item.id }}" aria-expanded="false" aria-controls="panelsStayOpen-collapse-{{ item.id }}">
+                        {% else %}
+                            <button class="accordion-button collapsed"  style="background-color: #F9F1E6; padding: 4px" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse-{{ item.id }}" aria-expanded="false" aria-controls="panelsStayOpen-collapse-{{ item.id }}">
+                        {% endif %}
+                            <table width="100%">
+                                <tr>
+                                    {% if item.hidden %}
+                                        <td style="width:100%"><span class="badge rounded-pill bg-secondary">{{ item.name }}</span></td>
+                                    {% else %}
+                                        <td style="width:100%"><span class="badge rounded-pill bg-success">{{ item.name }}</span></td>
+                                    {% endif %}
+                                </tr>
+                            </table>
+                        </button>
+                    </h3>
+                      {% if item.id == selected %}
+                        <div id="panelsStayOpen-collapse-{{ item.id }}" class="accordion-collapse collapse show" aria-labelledby="panelsStayOpen-heading-{{ item.id }}">
+                      {% else %}
+                        <div id="panelsStayOpen-collapse-{{ item.id }}" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-heading-{{ item.id }}">
+                      {% endif %}
+                        <div class="accordion-body">
+                            <a name="item{{ item.id }}"></a>
+                            <div class="accordion" id="accordionPanelsStayOpen-{{ item.id }}" style="max-width: 25em; margin: auto">
+                                <button id="open-house-estimate-details2" class="edit-estimate-details btn btn-warning py-0" data-toggle="modal" data-target="#myModal" data-form-url="{% url 'project:estimateeditmodal' item.id %}?f={{ filter_str }}">↵ Корректировать</button>
+                                <a class="confirm-estimate-delete btn btn-danger py-0" href="{% url 'project:estimatedelete' item.id %}?f={{ filter_str }}">✖ Удалить</a>
+                            </div>
+                        </div>
+            </div>
+        </div>
+
+        {% endfor %}
+    </div>
+    {% else %}
+        <div class="alert alert-warning">Ничего не найдено по вашему запросу</div>
+    {% endif %}
+
+<div class="modal fade" tabindex="-1" role="dialog" id="modal">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content"></div>
+  </div>
+</div>
+<script type="text/javascript">
+        $(document).on('click', '.confirm-estimate-delete', function(){
+                return confirm('Вы действительно хотите это удалить?');
+            })
+</script>
+
+<script type="text/javascript">
+$(function() {
+
+    function EditDetailDataForm() {
+        $(".edit-estimate-details").each(function () {
+            $(this).modalForm({
+                formURL: $(this).data("form-url")
+            });
+        });
+    }
+    EditDetailDataForm();
+
+    function AddObjectDataForm() {
+        $(".object-add").each(function () {
+            $(this).modalForm({
+                formURL: $(this).data("form-url")
+            });
+        });
+    }
+    AddObjectDataForm();
+});
+</script>
+
+
+{% endblock %}

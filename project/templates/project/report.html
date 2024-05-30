@@ -1,0 +1,117 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load humanize %}
+{% load filters %}
+
+
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Отчёт по расходам за период</h1>
+        {{ form.datefrom.label_tag }}<br>
+        {{ form.datefrom }}
+        {{ form.dateto.label_tag }}<br>
+        {{ form.dateto }}
+        {{ form.estimate.label_tag }}<br>
+        {{ form.estimate }}
+        {{ form.phase.label_tag }}<br>
+        {{ form.phase }}
+        {{ form.type_.label_tag }}<br>
+        {{ form.type_ }}
+        {{ form.exclusion.label_tag }}<br>
+        {{ form.exclusion }}
+        <div class="mb-2 mt-3 form-check form-switch">
+            Только бетон{{ form.concrete_only }}
+        </div>
+        <div class="mb-2 mt-3 form-check form-switch">
+            Только бартер{{ form.barter_only }}
+        </div>
+        {% buttons %}
+            <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Выполнить</button>
+        {% endbuttons %}
+    </form>
+    {% spaceless %}
+    {% if objects %}
+        <div class="accordion" id="accordionPanelsStayOpen" style="max-width: 30em; margin: auto">
+        {% for item in objects %}
+            <div class="accordion-item">
+                <h3 class="accordion-header" id="panelsStayOpen-heading-{{ item.house__object__id }}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse-{{ item.house__object__id }}" aria-expanded="false" aria-controls="panelsStayOpen-collapse-{{ item.house__object__id }}">
+                        <table width="100%">
+                            <tr>
+                                <td>{{ item.house__object__name }}</td> <td width="50%"><strong>{{ item.summary|floatformat:2 }}</strong></td>
+                            </tr>
+                        </table>
+                    </button>
+                </h3>
+                <div id="panelsStayOpen-collapse-{{ item.house__object__id }}" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-heading-{{ item.house__object__id }}">
+                    <div class="accordion-body">
+                        <div class="accordion" id="accordionPanelsStayOpen-{{ item.house__object__id }}" style="max-width: 25em; margin: auto">
+                            {% for subitem in details|get_details:item.house__object__id %}
+                                    <div class="accordion-item">
+                                        <h3 class="accordion-header" id="panelsStayOpen-heading-{{ subitem.house__id }}">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#subpanelsStayOpen-collapse-{{ subitem.house__id }}" aria-expanded="false" aria-controls="panelsStayOpen-collapse-{{ subitem.house__id }}">
+                                                <table width="100%">
+                                                    <tr>
+                                                        <td>{{ subitem.house__name }}</td> <td width="50%"><strong>{{ subitem.summary|floatformat:2 }}</strong></td>
+                                                    </tr>
+                                                </table>
+                                            </button>
+                                        </h3>
+                                        <div id="subpanelsStayOpen-collapse-{{ subitem.house__id }}" class="accordion-collapse collapse" aria-labelledby="subpanelsStayOpen-heading-{{ subitem.house__id }}">
+                                            <div class="accordion-body">
+                                                        {% for itemresult in subdetails|get_subdetails:subitem.house__id %}
+                                                                            <table width="100%">
+                                                                                <tr>
+                                                                                    {% if itemresult.estimate__id == 0 %}
+                                                                                    <td><button id="open-house-concrete-details" class="view-details btn btn-secondary py-0" data-toggle="modal" data-target="#myModal" data-form-url="{% url 'project:houseconcretereport' subitem.house__id %}?from={{ datefrom_ }}&to={{ dateto_ }}">{{ itemresult.estimate__name }}</button></td> <td width="25%"><strong>{{ itemresult.summary|floatformat:2 }}</strong></td>
+                                                                                    {% else %}
+                                                                                    <td><button id="open-house-estimate-details" class="view-concrete-details btn btn-warning py-0" data-toggle="modal" data-target="#myModal" data-form-url="{% url 'project:houseestimatereport' subitem.house__id itemresult.estimate__id phase type_ exclusion %}?from={{ datefrom_ }}&to={{ dateto_ }}&b={{ barter_only }}">{{ itemresult.estimate__name }}</button></td> <td width="25%"><strong>{{ itemresult.summary|floatformat:2 }}</strong></td>
+                                                                                    {% endif %}
+                                                                                </tr>
+                                                                            </table>
+                                                        {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+           </div>
+        {% endfor %}
+            <div class="d-flex w-100 justify-content-end mt-3">
+                <b>Итого: {{ summary|floatformat:2|intcomma }}</b>&nbsp;р.&nbsp;({{ summary_volume|floatformat:2 }}&nbsp;м3)&nbsp;&nbsp;&nbsp;&nbsp;
+            </div>
+        </div>
+    {% endif %}
+    {% endspaceless %}
+<div class="modal fade" tabindex="-1" role="dialog" id="modal">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content"></div>
+  </div>
+</div>
+
+<script type="text/javascript">
+$(function() {
+
+    function viewDetailDataForm() {
+        $(".view-details").each(function () {
+            $(this).modalForm({formURL: $(this).data("form-url")});
+        });
+    }
+    viewDetailDataForm();
+
+        function viewConcreteDetailDataForm() {
+        $(".view-concrete-details").each(function () {
+            $(this).modalForm({formURL: $(this).data("form-url")});
+        });
+    }
+    viewConcreteDetailDataForm();
+});
+</script>
+
+{% endblock %}

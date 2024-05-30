@@ -1,0 +1,106 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load bootstrap_icons %}
+
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+                 <div>
+                    <h1>Перечень объектов и домов</h1>
+                </div>
+       <div class="btn-toolbar" role="toolbar" aria-label="...">
+            <div class="btn-group mr-2" role="group" aria-label="First group">
+{#                <a href="{% url 'project:objectsaddmodal' %}"> #}
+{#                    <button type="button" class="btn btn-secondary">{% bs_icon 'plus-square' size='1.2em' color='white' extra_classes='mb-1' %} #}
+{#                                <span class="fs-7 fw-semibold float-right">&nbsp;&nbsp;Добавить объект</span></button> #}
+{#                    </a>&nbsp;#}
+                <button id="open-object-details" class="object-add btn btn-secondary btn-lg py-2" data-toggle="modal" data-target="#myModal" data-form-url="{% url 'project:objectaddmodal' %}">{% bs_icon 'plus-square' size='1.2em' color='white' extra_classes='mb-1' %}&nbsp;Добавить объект</button>
+            </div>
+        </div>
+    </div>
+</nav>
+    <div class="accordion" id="accordionPanelsStayOpen" style="max-width: 20em; margin: auto">
+        {% for item in objects %}
+        <div class="accordion-item" style="background-color: #F1F1F1">
+                    <h3 class="accordion-header" id="panelsStayOpen-heading-{{ item.id }}">
+                        {% if item.id == selected %}
+                            <button class="accordion-button"  style="background-color: #F9F1E6; padding: 4px" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse-{{ item.id }}" aria-expanded="false" aria-controls="panelsStayOpen-collapse-{{ item.id }}">
+                        {% else %}
+                            <button class="accordion-button collapsed"  style="background-color: #F9F1E6; padding: 4px" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse-{{ item.id }}" aria-expanded="false" aria-controls="panelsStayOpen-collapse-{{ item.id }}">
+                        {% endif %}
+                            <table width="100%">
+                                <tr>
+                                    <td style="width:100%"><span class="badge rounded-pill {% if item.special %}bg-secondary{% else %}bg-warning{% endif %}">{{ item.name }}</span></td>
+                                </tr>
+                            </table>
+                        </button>
+                    </h3>
+                      {% if item.id == selected %}
+                        <div id="panelsStayOpen-collapse-{{ item.id }}" class="accordion-collapse collapse show" aria-labelledby="panelsStayOpen-heading-{{ item.id }}">
+                      {% else %}
+                        <div id="panelsStayOpen-collapse-{{ item.id }}" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-heading-{{ item.id }}">
+                      {% endif %}
+                        <div class="accordion-body">
+                            <div class="accordion" id="accordionPanelsStayOpen-{{ item.id }}" style="max-width: 25em; margin: auto">
+                                {% for item_h in houses %}
+                                    {% if item_h.object_id == item.id %}
+                                        {# {{ item_h.name }}<br> #}
+                                            <button id="house-details" class="view-house-details btn btn-sm btn-success py-0" data-toggle="modal" data-target="#myHouseModal" data-form-url="{% url 'project:houseditmodal' item_h.id %}">{{ item_h.name }}</button><br>
+                                    {% endif %}
+                                {% endfor %}
+ {#                               <a href="{% url 'project:houseadd' item.id %}" class="btn btn-success py-0 d-flex justify-content-lg-center"> #}
+ {#                                    <div class="text-white">{% bs_icon 'house' size='1.2em' color='white' extra_classes='pl-0 mb-1' %}Добавить дом</div> #}
+ {#                               </a> #}
+
+                                <button id="open-house-estimate-details" class="view-details btn btn-warning py-0" data-toggle="modal" data-target="#myModal" data-form-url="{% url 'project:houseaddmodal' item.id %}">Добавить дом</button>
+                            </div>
+                        </div>
+            </div>
+        </div>
+
+        {% endfor %}
+    </div>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="modal">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content"></div>
+  </div>
+</div>
+
+<script type="text/javascript">
+$(function() {
+
+    function viewDetailDataForm() {
+        $(".view-details").each(function () {
+            $(this).modalForm({
+                formURL: $(this).data("form-url")
+            });
+        });
+    }
+    viewDetailDataForm();
+
+    function EditDetailDataForm() {
+        $(".view-house-details").each(function () {
+            $(this).modalForm({
+                formURL: $(this).data("form-url")
+            });
+        });
+    }
+    EditDetailDataForm();
+
+    function AddObjectDataForm() {
+        $(".object-add").each(function () {
+            $(this).modalForm({
+                formURL: $(this).data("form-url")
+            });
+        });
+    }
+    AddObjectDataForm();
+});
+</script>
+
+
+{% endblock %}

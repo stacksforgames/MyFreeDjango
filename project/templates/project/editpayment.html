@@ -1,0 +1,36 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% load bootstrap_icons %}
+
+
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Редактирование авансового платежа</h1>
+
+        {% if error %}
+            <div class="alert alert-danger fade show mt-0" role="alert">{{ error }}</div>
+        {% endif %}
+
+        {{ form.date.label_tag }}<br>
+        {{ form.date }}
+        {{ form.supplier.label_tag }}<br>
+        {{ form.supplier }}
+        {{ form.summary.label_tag }}<br>
+        {{ form.summary }}
+        {{ form.comment.label_tag }}<br>
+        {{ form.comment }}
+
+        {{ form.media }}
+
+        {% buttons %}
+            <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Сохранить</button>
+        {% endbuttons %}
+    </form>
+    <div class="d-flex justify-content-center">
+            <a class="btn btn-sm btn btn-secondary" href="{% url 'project:filteredconcretedelivery' %}?page={{ page }}&from={{ datefrom }}&to={{ dateto }}&s={{ filter_supplier }}&o={{ filtered_object }}&h={{ filtered_house }}&a={{ prepay_only_ }}">{% bs_icon 'reply' size='1.5em' color='white' extra_classes='mb-1' %} Вернуться</a>
+    </div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+
+
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Добавление нового контракта</h1>
+
+        {% if error %}
+            {% for item in error %}
+                <div class="alert alert-danger fade show mt-0" role="alert">{{ item }}</div>
+            {% endfor %}
+        {% endif %}
+
+        {{ form.type.label_tag }}<br>
+        {{ form.type }}
+        {{ form.number.label_tag }}<br>
+        {{ form.number }}
+
+        {{ form.title.label_tag }}<br>
+        {{ form.title }}
+        {{ form.date.label_tag }}<br>
+        {{ form.date }}
+
+        {{ form.object.label_tag }}<br>
+        {{ form.object }}
+        {{ form.house.label_tag }}<br>
+        {{ form.house }}
+
+        {{ form.client.label_tag }}<br>
+        {{ form.client }}
+        {{ form.clientphone.label_tag }}<br>
+        <small><i>(предупреждение: введённый номер после сохранения будет скрыт)</i></small>
+        {{ form.clientphone }}
+        {{ form.agency.label_tag }}<br>
+        {{ form.agency }}
+        {{ form.agencyphone.label_tag }}<br>
+        <small><i>(предупреждение: введённый номер после сохранения будет скрыт)</i></small>
+        {{ form.agencyphone }}
+        {{ form.apartment.label_tag }}<br>
+        {{ form.apartment }}
+
+        {{ form.square.label_tag }}<br>
+        {{ form.square }}
+        {{ form.price.label_tag }}<br>
+        {{ form.price }}
+
+        {{ form.agency_discount.label_tag }}<br>
+        {{ form.agency_discount }}
+        {{ form.developer_discount.label_tag }}<br>
+        {{ form.developer_discount }}
+
+        {{ form.seller_commission_calc.label_tag }}<br>
+        {{ form.seller_commission_calc }}
+        {{ form.seller_commission.label_tag }}<br>
+        {{ form.seller_commission }}
+
+        {{ form.agency_commission_calc.label_tag }}<br>
+        {{ form.agency_commission_calc }}
+        {{ form.agency_commission.label_tag }}<br>
+        {{ form.agency_commission }}
+
+        {{ form.installment.label_tag }}<br>
+        {{ form.installment }}
+
+        <input type="hidden" id="contract_a" value="{{ max_contract_a }}">
+        <input type="hidden" id="contract_b" value="{{ max_contract_b }}">
+        <input type="hidden" id="contract_c" value="{{ max_contract_c }}">
+
+        {{ form.media }}
+
+        {% buttons %}
+            <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Добавить</button>
+        {% endbuttons %}
+    </form>
+    <div class="d-flex justify-content-center">
+            <a class="btn btn-sm btn btn-secondary" href="{% url 'project:contracts' %}{% if rollback %}?{{ rollback }}{% endif %}">&#x21b6; Вернуться</a>
+    </div>
+
+    <script>
+        var id_type = document.getElementById("id_type");
+        var id_number = document.getElementById("id_number");
+        var contract_a = document.getElementById("contract_a");
+        var contract_b = document.getElementById("contract_b");
+        var contract_c = document.getElementById("contract_c");
+            if (id_type.value == "a") {
+                id_number.innerHTML = contract_a.value;
+            } else {
+                if (id_type.value == "b") {
+                    id_number.innerHTML = contract_b.value;
+                } else {
+                    id_number.innerHTML = contract_c.value;
+                    }
+              }
+
+        id_type.oninput = function() {
+            if (id_type.value == "a") {
+                id_number.innerHTML = contract_a.value;
+            } else {
+                if (id_type.value == "b") {
+                    id_number.innerHTML = contract_b.value;
+                } else {
+                    id_number.innerHTML = contract_c.value;
+                    }
+              }
+        }
+    </script>
+{% endblock %}

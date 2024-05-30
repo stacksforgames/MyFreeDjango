@@ -1,0 +1,22 @@
+{% load bootstrap5 %}
+{% load bootstrap_icons %}
+{% load filters %}
+
+<form method="post" action="">
+  {% csrf_token %}
+    <div class="modal-header" xmlns="http://www.w3.org/1999/html">
+        <h5 class="modal-title">Добавление сметы</h5>
+    </div>
+    <div class="modal-body">
+            {{ form.name.label_tag }}<br>
+            {{ form.name }}
+            <div class="mb-2 mt-3 form-check form-switch">
+                Скрытая смета{{ form.hidden }}
+            </div>
+
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Возврат</button>
+        <button type="submit" class="btn btn-warning">Создать</button>
+    </div>
+</form>

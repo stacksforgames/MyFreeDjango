@@ -1,0 +1,86 @@
+{% extends 'main/base.html' %}
+{% load bootstrap5 %}
+{% block title %}
+{{ title }}
+{% endblock %}
+{% block mycss %} <style> .readonlyfield {border: 1px solid #ced4da; border-radius: .25rem; padding: .375rem 2.25rem .375rem .75rem; background-color: #FAFAFA} </style> {% endblock %}
+
+
+{% block content %}
+    <form method="post" class="form" style="max-width: 25em; padding: 15px; width: 100%; margin: auto">
+        {% csrf_token %}
+        <h1 class="h3 fw-normal" style="margin-top: 10px; margin-bottom: 10px">Корректировка контракта</h1>
+
+        {% if error %}
+            {% for item in error %}
+                <div class="alert alert-danger fade show mt-0" role="alert">{{ item }}</div>
+            {% endfor %}
+        {% endif %}
+
+        Тип договора:<br>
+            <div class="readonlyfield">
+                {{ contract.get_type_display }}
+            </div>
+        Номер договора:<br>
+            <div class="readonlyfield">
+                {{ contract.number }}
+            </div>
+
+        {{ form.title.label_tag }}<br>
+        {{ form.title }}
+        {{ form.date.label_tag }}<br>
+        {{ form.date }}
+
+        {{ form.object.label_tag }}<br>
+        {{ form.object }}
+        {{ form.house.label_tag }}<br>
+        {{ form.house }}
+
+        {{ form.client.label_tag }}<br>
+        {{ form.client }}
+        {{ form.agency.label_tag }}<br>
+        {{ form.agency }}
+        {{ form.apartment.label_tag }}<br>
+        {{ form.apartment }}
+
+        {{ form.square.label_tag }}<br>
+        {{ form.square }}
+        {{ form.price.label_tag }}<br>
+        {{ form.price }}
+
+        {{ form.agency_discount.label_tag }}<br>
+        {{ form.agency_discount }}
+        {{ form.developer_discount.label_tag }}<br>
+        {{ form.developer_discount }}
+
+        {{ form.seller_commission_calc.label_tag }}<br>
+        {{ form.seller_commission_calc }}
+        {{ form.seller_commission.label_tag }}<br>
+        {{ form.seller_commission }}
+
+        {{ form.agency_commission_calc.label_tag }}<br>
+        {{ form.agency_commission_calc }}
+        {{ form.agency_commission.label_tag }}<br>
+        {{ form.agency_commission }}
+
+        {{ form.installment.label_tag }}<br>
+        {{ form.installment }}
+
+        {{ form.media }}
+
+        {% buttons %}
+            <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 10px">Сохранить</button>
+        {% endbuttons %}
+    </form>
+    <div  style="max-width: 25em; margin: auto">
+       <nav class="navbar navbar-light px-3">
+
+            <a class="btn btn-sm btn btn-secondary" href="{% url 'project:onecontract' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">&#x21b6; Вернуться</a>
+            <ul class="nav nav-pills">
+                <li class="nav-item">
+                    <a class="btn btn-sm btn btn-warning" href="{% url 'project:contractchange' contract.id %}{% if rollback %}?{{ rollback }}{% endif %}">Изменить тип договора</a>
+                </li>
+            </ul>
+       </nav>
+    </div>
+{% endblock %}
