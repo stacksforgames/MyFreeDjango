@@ -1,0 +1,25 @@
+{% extends "main/base.html" %}
+{% load bootstrap5 %}
+
+{% block content %}
+
+{% if form.errors %}
+    <p>Указанные пользователь и пароль не совпадают. Попробуйте снова.</p>
+{% endif %}
+
+<form method="post" action="{% url 'users:login' %}" class="form" style="max-width: 330px; padding: 15px; width: 100%; margin: auto">
+    {% csrf_token %}
+    <h1 class="h3 fw-normal" style="margin-top: 40px; margin-bottom: 40px">Требуется авторизация</h1>
+    {% bootstrap_form form layout="vertical" size="large" show_label=False %}
+    {% buttons %}
+        <button name="submit"  class="w-100 btn btn-lg btn-primary" style="margin-top: 40px">Войти</button>
+    {% endbuttons %}
+    {# <p class="mt-5 mb-3 text-muted" align="center">© 2021</p> #}
+
+    <input type="hidden" name="next"
+           value="{% url 'project:bids' %}"
+        {# value="{% url 'home' %}" /> #}
+
+</form>
+
+{% endblock content %}

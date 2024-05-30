@@ -1,0 +1,13 @@
+{% extends "main/base.html" %}
+{% load bootstrap_icons %}
+{% block content %}
+
+ <div class="alert alert-error ">
+  <div class="alert-heading">
+   <h2>Вы вышли. Всего доброго!</h2>
+   <hr>
+   <a class="btn btn-secondary" href="{% url 'project:bids' %}">{% bs_icon 'house-door' size='1.5em' color='white' extra_classes='mb-1' %} Перейти на главную страницу</a>
+  </div>
+ </div>
+
+{% endblock content %}
