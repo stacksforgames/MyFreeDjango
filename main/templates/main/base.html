@@ -1,0 +1,163 @@
+{% load bootstrap5 %}
+{% load static %}
+
+{% load tags %}
+
+<!doctype html>
+<html lang="en" style="scroll-behavior: unset">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{% block title %}{% endblock %}</title>
+
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
+
+    <link src="{% static '/admin/css/base.css' %}" type="text/css" rel="stylesheet" />
+    <link src="{% static '/admin/css/forms.css' %}" type="text/css" rel="stylesheet" />
+
+{#     <link src="{% static '/admin/css/vendor/select2/select2.css' %}" type="text/css" rel="stylesheet" /> #}
+{#     <link src="{% static '/admin/css/autocomplete.css' %}" type="text/css" rel="stylesheet" /> #}
+{#     <link src="{% static '/autocomplete-light/select2.css' %}" type="text/css" rel="stylesheet" /> #}
+       <script type="text/javascript" src="{% static '/admin/js/vendor/jquery/jquery.js' %}"></script>
+{#     <script type="text/javascript" src="{% static '/admin/js/jquery.init.js' %}"></script> #}
+{#     <script type="text/javascript" src="{% static '/bootstrap.min.js' %}"></script> #}
+
+{#--    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script> #}
+{#    <script type="text/javascript" src="{% static '/jquery-3.6.0.min.js' %}"></script> #}
+{#    <script type="text/javascript" src="{% static '/admin/js/vendor/select2/select2.full.js' %}"></script> #}
+    <script type="text/javascript" src="{% static '/js/jquery.bootstrap.modal.forms.min.js' %}"></script>
+
+
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+
+    {% block mycss %} {% endblock mycss %}
+
+</head>
+<body>
+
+<header class="p-2 bg-dark text-white">
+    <div class="container">
+      {#<div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">#}
+       <nav class="navbar navbar-expand-md bd-navbar justify-content-center">
+        {#<div class="container-fluid">#}
+        {#<div class="collapse navbar-collapse">#}
+             {% is_boss request as is_boss_ %}
+             {% is_supplier request as is_supplier_ %}
+             {% is_accountant request as is_accountant_ %}
+             {% is_manager request as is_manager_ %}
+             {% is_only_seller request as is_only_seller_ %}
+             {% is_seller request as is_seller_ %}
+             {% is_concreter request as is_concreter_ %}
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            {% if user.is_authenticated %}
+              {% if not is_only_seller_ %}
+              <li class="nav-item">
+                  <a href="{% url 'project:bids' %}" class="nav-link px-2 text-white">&#x1f3e0; Перечень заявок</a>
+              </li>
+              {% endif %}
+             {% if is_manager_ or is_supplier_ or is_accountant_ or is_boss_ %}
+
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle text-blue bg-dark" href="#" data-bs-toggle="dropdown" aria-expanded="true" role="button">
+                         &#x1f4dd; Отчёты
+                      </a>
+                        <ul class="dropdown-menu bg-light" style="cursor: pointer">
+                            <li><a href="{% url 'project:phasereport' %}" class="dropdown-item">Отчёт по расходам (по этапу)</a></li>
+                            <li><a href="{% url 'project:report' %}" class="dropdown-item">Отчёт по расходам (по смете)</a></li>
+                            <li><a href="{% url 'project:supplierreport' %}" class="dropdown-item">Отчёт по поставщикам за период</a></li>
+                            <li><a href="{% url 'project:bidsexport' %}" class="dropdown-item">Выгрузка заявок в эксель</a></li>
+                            <li><a href="{% url 'project:contractsexport' %}" class="dropdown-item">Выгрузка контрактов в эксель</a></li>
+                            <li><a href="{% url 'project:archive' %}" class="dropdown-item"> Архив</a></li>
+                            <li><a href="{% url 'project:orders' %}" class="dropdown-item"> Заказы</a></li>
+                            {% if is_accountant_ or is_boss_ %}
+                                <li><a href="{% url 'project:filteredbalances' %}" class="dropdown-item">Справка по кассе</a></li>
+                            {% endif %}
+                        </ul>
+                </li>
+              {% endif %}
+             {% if is_concreter_ or is_manager_ %}
+                <li>
+                    <a href="{% url 'project:filteredconcretedelivery' %}" class="nav-link px-2 text-blue">&#x1f4e5; Бетон</a>
+                </li>
+             {% endif %}
+             {% if is_seller_ %}
+                <li>
+                    <a href="{% url 'project:contracts' %}" class="nav-link px-2 text-blue">&#x1f4dc; Контракты</a>
+                </li>
+             {% endif %}
+
+             {% is_boss request as is_boss_ %}
+             {% is_supplier request as is_supplier_ %}
+             {% is_accountant request as is_accountant_ %}
+             {% if is_boss_ or is_supplier_ or is_accountant_ %}
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle text-blue bg-dark" href="#" data-bs-toggle="dropdown" aria-expanded="true" role="button">
+                        &#9776;&nbsp;Справочники
+                      </a>
+                        <ul class="dropdown-menu bg-light" style="cursor: pointer">
+                            <li><a href="{% url 'project:samples' %}" class="dropdown-item">Шаблоны заказов</a></li>
+                            {% if is_boss_ %}
+                                <li><a href="{% url 'project:objects' %}" class="dropdown-item">Объекты/дома</a></li>
+                                <li><a href="{% url 'project:estimates' %}" class="dropdown-item">Сметы</a></li>
+                                <li><a href="{% url 'project:phases' %}" class="dropdown-item">Этапы строительства</a></li>
+                            {% endif %}
+                             {% if is_boss_ or is_supplier_ or is_accountant_ %}
+                                <li><a href="{% url 'project:suppliers' %}" class="dropdown-item">Поставщики</a></li>
+                            {% endif %}
+                             {% if is_boss_ or is_accountant_ %}
+                                <li><a href="{% url 'project:filteredsubcashes' %}" class="dropdown-item">Кассы</a></li>
+                                <li><a href="{% url 'project:filteredaccounts' %}" class="dropdown-item">Счета</a></li>
+                            {% endif %}
+                        </ul>
+                </li>
+             {% endif %}
+              {% if not is_only_seller_ %}
+                <li><a href="{% url 'project:found' %}" id="view-search" class="nav-link px-2 text-blue">&#128270; Поиск заявок</a></li>
+              {% endif %}
+            {% endif %}
+          </ul>
+
+        <div class="text-end">
+
+            {% if user.is_authenticated %}
+                 {{ user.username }}
+                <a href="{% url 'users:logout' %}" class="btn btn-primary btn-lg active" role="button">Выйти</a>
+            {% else %}
+                <a href="{% url 'users:login' %}" class="btn btn-primary btn-lg active" role="button">Войти</a>
+                {# <a href="{% url 'users:register' %}" class="login-btn btn btn-outline-light me-2">Sign up</a> #}
+            {% endif %}
+        </div>
+
+
+        {#</div>#}
+        {#</div>#}
+      </div>
+       </nav>
+
+        {#<form action="{% url 'project:search' %}" method="get" class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">#}
+        {#  <input type="q" class="form-control form-control-dark" placeholder="Search..." aria-label="Search">#}
+        {#</form>#}
+{#--#}
+{#--#}
+     {#</div>#}
+    </div>
+  </header>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="modal-search">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content"></div>
+  </div>
+</div>
+
+
+  <footer>
+      <p class="mt-5 mb-3 text-muted" align="center">© 2021</p>
+  </footer>
+</body>
+</html>
